@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Saweria — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item active" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Saweria</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="max-width:560px;margin:0 auto">
+
+        <div class="card mb-16">
+          <div class="card-body" style="display:flex;align-items:center;gap:16px">
+            <div class="stat-icon" style="background:#fce7f3;color:#db2777"><i class="fas fa-hand-holding-heart"></i></div>
+            <div>
+              <div class="stat-label">Dukung AustinPay</div>
+              <div style="font-size:14px;color:var(--text-muted)">Suka dengan layanan AustinPay? Traktir owner kopi lewat saweria — nominal bebas, boleh sertakan pesan 💌</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Saweria -->
+        <div class="card" id="form-section">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-gift" style="color:#db2777"></i> Kirim Saweria</span>
+          </div>
+          <div class="card-body">
+            <div id="form-alert"></div>
+
+            <div class="form-group">
+              <label class="form-label">Nominal Saweria</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="amount" placeholder="0" min="1000" style="padding-right:60px">
+                <span class="input-addon" style="font-size:12px;font-weight:600;right:12px">IDR</span>
+              </div>
+              <p class="form-hint">Minimal Rp 1.000 — bebas berapapun, semua sangat berarti 🙏</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+              <button class="btn btn-outline btn-sm" onclick="setAmount(5000)">Rp 5K</button>
+              <button class="btn btn-outline btn-sm" onclick="setAmount(10000)">Rp 10K</button>
+              <button class="btn btn-outline btn-sm" onclick="setAmount(25000)">Rp 25K</button>
+              <button class="btn btn-outline btn-sm" onclick="setAmount(50000)">Rp 50K</button>
+              <button class="btn btn-outline btn-sm" onclick="setAmount(100000)">Rp 100K</button>
+              <button class="btn btn-outline btn-sm" onclick="setAmount(250000)">Rp 250K</button>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nama Ditampilkan</label>
+              <input type="text" class="form-control" id="display-name" maxlength="60" placeholder="Nama kamu">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pesan / Catatan (opsional)</label>
+              <textarea class="form-control" id="note" maxlength="300" rows="3" placeholder="Tulis pesan buat owner..."></textarea>
+            </div>
+
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;cursor:pointer;font-size:14px">
+              <input type="checkbox" id="is-anonymous" style="width:16px;height:16px">
+              Kirim sebagai anonim (nama disembunyikan, tetap tercatat sebagai "Hamba Allah")
+            </label>
+
+            <div class="form-group">
+              <label class="form-label">Metode Pembayaran</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <button class="btn btn-primary btn-sm method-btn" id="method-balance" onclick="setMethod('balance')"><i class="fas fa-wallet"></i> Saldo AustinPay</button>
+                <button class="btn btn-outline btn-sm method-btn" id="method-qris" onclick="setMethod('qris')"><i class="fas fa-qrcode"></i> QRIS</button>
+              </div>
+              <p class="form-hint" id="method-hint">Didebit langsung dari saldo AustinPay kamu — instan.</p>
+            </div>
+
+            <button class="btn btn-primary btn-full btn-lg" id="saweria-btn" onclick="submitSaweria()" style="background:#db2777;border-color:#db2777">
+              <i class="fas fa-paper-plane"></i> Kirim Saweria
+            </button>
+          </div>
+        </div>
+
+        <!-- QRIS Display -->
+        <div class="card mt-16" id="qris-section" style="display:none">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-qrcode" style="color:var(--primary)"></i> Scan QRIS untuk Saweria</span>
+            <button class="btn btn-outline btn-sm" onclick="resetForm()"><i class="fas fa-arrow-left"></i> Kembali</button>
+          </div>
+          <div class="card-body">
+            <div class="qr-container">
+              <p class="text-muted text-sm mb-8">Bayar tepat sebesar:</p>
+              <div class="qr-amount" id="qr-amount">Rp 0</div>
+              <p class="text-sm mb-16" style="color:var(--warning)"><i class="fas fa-exclamation-triangle"></i> Bayar sesuai nominal (ada kode unik)</p>
+
+              <div class="qr-box" id="qr-box">
+                <div id="qr-canvas" style="display:none"></div>
+                <canvas id="qris-final-canvas" style="display:none"></canvas>
+                <div id="qr-loading" style="padding:20px;text-align:center;color:#888;font-size:13px;min-height:220px;display:flex;align-items:center;justify-content:center"><i class="fas fa-spinner fa-spin"></i> Memuat QRIS...</div>
+              </div>
+
+              <button class="btn btn-outline btn-full mb-8" id="download-qris-btn" style="display:none" onclick="downloadQRIS()">
+                <i class="fas fa-download"></i> Download QRIS
+              </button>
+
+              <div class="qr-timer" id="qr-timer"><i class="far fa-clock"></i> 10:00</div>
+              <div class="qr-status-polling" id="polling-status">
+                <div class="polling-dot"></div>
+                <span>Menunggu pembayaran...</span>
+              </div>
+
+              <div id="qr-success" style="display:none" class="mt-16">
+                <div class="alert alert-success" style="justify-content:center;font-size:16px;font-weight:700">
+                  <i class="fas fa-check-circle"></i> Terima kasih atas saweria-nya! 💖
+                </div>
+                <button class="btn btn-primary btn-full" onclick="resetForm()">Kirim Saweria Lagi</button>
+              </div>
+
+              <div id="qr-expired" style="display:none" class="mt-16">
+                <div class="alert alert-danger"><i class="fas fa-times-circle"></i> QRIS sudah kadaluarsa. Silakan buat lagi.</div>
+                <button class="btn btn-outline btn-full" onclick="resetForm()">Buat Ulang</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feed saweria terbaru -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-heart" style="color:#db2777"></i> Saweria Terbaru</span>
+          </div>
+          <div class="card-body" id="saweria-feed" style="padding-top:8px">
+            <p class="text-muted text-sm">Memuat...</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script>
+let currentSaweria = null;
+let pollTimer = null;
+let timerInterval = null;
+let currentMethod = 'balance';
+
+async function init() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+  document.getElementById('display-name').value = (res.user.full_name || res.user.username || '');
+  loadFeed();
+}
+
+function setAmount(val) {
+  document.getElementById('amount').value = val;
+}
+
+function setMethod(method) {
+  currentMethod = method;
+  const balBtn = document.getElementById('method-balance');
+  const qrisBtn = document.getElementById('method-qris');
+  balBtn.classList.toggle('btn-primary', method === 'balance');
+  balBtn.classList.toggle('btn-outline', method !== 'balance');
+  qrisBtn.classList.toggle('btn-primary', method === 'qris');
+  qrisBtn.classList.toggle('btn-outline', method !== 'qris');
+  document.getElementById('method-hint').textContent = method === 'balance'
+    ? 'Didebit langsung dari saldo AustinPay kamu — instan.'
+    : 'Scan QRIS dari Dana, GoPay, OVO, ShopeePay, m-Banking, dll.';
+}
+
+async function loadFeed() {
+  const feed = document.getElementById('saweria-feed');
+  const res = await API.get('/api/saweria/recent');
+  if (!res.success || !res.data || !res.data.length) {
+    feed.innerHTML = '<p class="text-muted text-sm">Belum ada saweria masuk. Jadilah yang pertama! 💖</p>';
+    return;
+  }
+  feed.innerHTML = res.data.map((s) => `
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="stat-icon" style="width:36px;height:36px;font-size:14px;background:#fce7f3;color:#db2777;flex-shrink:0"><i class="fas fa-heart"></i></div>
+      <div style="min-width:0;flex:1">
+        <div style="font-weight:600;font-size:14px">${escapeHtml(s.display_name)} <span style="color:#db2777;font-weight:700">${formatRupiah(s.amount)}</span></div>
+        ${s.note ? `<div style="font-size:13px;color:var(--text-muted);word-break:break-word">"${escapeHtml(s.note)}"</div>` : ''}
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${formatRelativeTime ? formatRelativeTime(s.paid_at || s.createdAt) : new Date(s.paid_at || s.createdAt).toLocaleString('id-ID')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+async function submitSaweria() {
+  const amount = parseInt(document.getElementById('amount').value);
+  const alertBox = document.getElementById('form-alert');
+  alertBox.innerHTML = '';
+
+  if (!amount || amount < 1000) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nominal minimal Rp 1.000</div>';
+    return;
+  }
+
+  const payload = {
+    amount,
+    note: document.getElementById('note').value.trim(),
+    display_name: document.getElementById('display-name').value.trim(),
+    is_anonymous: document.getElementById('is-anonymous').checked,
+  };
+
+  const btn = document.getElementById('saweria-btn');
+  btnLoading(btn, true);
+
+  if (currentMethod === 'balance') {
+    const res = await API.post('/api/saweria/donate-balance', payload);
+    btnLoading(btn, false);
+    if (!res.success) {
+      alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}</div>`;
+      return;
+    }
+    Toast.success('Terima kasih atas saweria-nya! 💖');
+    document.getElementById('amount').value = '';
+    document.getElementById('note').value = '';
+    loadFeed();
+    const me = await API.get('/api/auth/me');
+    if (me.wallet) document.querySelectorAll('[data-balance]').forEach((el) => el.textContent = formatRupiah(me.wallet.balance));
+    return;
+  }
+
+  const res = await API.post('/api/saweria/donate-qris', payload);
+  btnLoading(btn, false);
+  if (!res.success) {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}</div>`;
+    return;
+  }
+  currentSaweria = res.data;
+  await showQRIS(res.data);
+}
+
+// ── QR rendering, sama pola dengan /deposit (template QRIS resmi) ──
+const QRIS_TEMPLATE_URL = '/img/qris-template.png';
+let qrisTemplateImg = null;
+function loadTemplateImage() {
+  return new Promise((resolve) => {
+    if (qrisTemplateImg) return resolve(qrisTemplateImg);
+    const img = new Image();
+    img.onload = () => { qrisTemplateImg = img; resolve(img); };
+    img.onerror = () => resolve(null);
+    img.src = QRIS_TEMPLATE_URL;
+  });
+}
+const QRIS_TPL_BOX = { x: 258, y: 560, size: 540 };
+const QRIS_TPL_NAME_Y = 512;
+
+async function renderQrisComposite(qrSourceEl, username) {
+  const canvas = document.getElementById('qris-final-canvas');
+  const tmpl = await loadTemplateImage();
+  const W = tmpl ? tmpl.naturalWidth : 1056;
+  const H = tmpl ? tmpl.naturalHeight : 1489;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  if (tmpl) ctx.drawImage(tmpl, 0, 0, W, H);
+  else { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H); }
+  if (username) {
+    ctx.fillStyle = '#111111';
+    ctx.font = '700 30px Arial, Helvetica, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(username, W / 2, QRIS_TPL_NAME_Y);
+  }
+  if (qrSourceEl) ctx.drawImage(qrSourceEl, QRIS_TPL_BOX.x, QRIS_TPL_BOX.y, QRIS_TPL_BOX.size, QRIS_TPL_BOX.size);
+  canvas.style.display = 'block';
+  document.getElementById('download-qris-btn').style.display = 'block';
+}
+
+function downloadQRIS() {
+  const canvas = document.getElementById('qris-final-canvas');
+  if (!canvas || canvas.style.display === 'none') return;
+  const txId = (currentSaweria && currentSaweria.transaction_id) || 'saweria';
+  const link = document.createElement('a');
+  link.download = `Saweria-${txId}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function showQRIS(saweria) {
+  stopPolling(); clearInterval(timerInterval);
+
+  document.getElementById('form-section').style.display = 'none';
+  document.getElementById('qris-section').style.display = 'block';
+  document.getElementById('qr-amount').textContent = formatRupiah(saweria.amount);
+  document.getElementById('qr-success').style.display = 'none';
+  document.getElementById('qr-expired').style.display = 'none';
+  document.getElementById('polling-status').style.display = 'flex';
+  document.getElementById('qr-timer').style.display = 'block';
+
+  const username = document.getElementById('display-name').value || 'AustinPay';
+  const qrCanvas = document.getElementById('qr-canvas');
+  const qrFinalCanvas = document.getElementById('qris-final-canvas');
+  const qrLoading = document.getElementById('qr-loading');
+  qrFinalCanvas.style.display = 'none';
+  document.getElementById('download-qris-btn').style.display = 'none';
+  qrLoading.style.display = 'flex';
+  qrLoading.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat QRIS...';
+  qrCanvas.innerHTML = '';
+
+  if (saweria.qr_string) {
+    try {
+      new QRCode(qrCanvas, {
+        text: saweria.qr_string, width: 220, height: 220,
+        colorDark: '#111111', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M,
+      });
+      const rawEl = qrCanvas.querySelector('canvas') || qrCanvas.querySelector('img');
+      await renderQrisComposite(rawEl, username);
+      qrLoading.style.display = 'none';
+    } catch (e) {
+      qrLoading.textContent = 'Gagal generate QR. Silakan coba lagi.';
+    }
+  } else {
+    qrLoading.textContent = 'QRIS tidak tersedia.';
+  }
+
+  const expiredAt = new Date(saweria.expired_at).getTime();
+  timerInterval = setInterval(() => {
+    const diff = Math.max(0, expiredAt - Date.now());
+    const min = Math.floor(diff / 60000);
+    const sec = Math.floor((diff % 60000) / 1000);
+    document.getElementById('qr-timer').innerHTML = `<i class="far fa-clock"></i> ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    if (diff <= 0) {
+      clearInterval(timerInterval);
+      stopPolling();
+      pollStatus(saweria.transaction_id, { fallbackToExpired: true });
+    }
+  }, 1000);
+
+  // [CATATAN] Beda dari /deposit — endpoint check di sini cuma baca baris
+  // dari database sendiri (bukan hit API "Check Mutasi" berbayar ke
+  // provider), jadi aman dipoll dengan interval tetap & cukup rapat.
+  pollTimer = setInterval(() => pollStatus(saweria.transaction_id), 4000);
+}
+
+function stopPolling() {
+  clearInterval(pollTimer);
+  pollTimer = null;
+}
+
+async function pollStatus(transactionId, opts = {}) {
+  const res = await API.get(`/api/saweria/check/${transactionId}`);
+  if (res.success && res.data.status === 'success') {
+    stopPolling(); clearInterval(timerInterval); showSuccess();
+  } else if (res.success && res.data.status === 'expired') {
+    stopPolling(); clearInterval(timerInterval); showExpired();
+  } else if (opts.fallbackToExpired) {
+    stopPolling(); clearInterval(timerInterval); showExpired();
+  }
+}
+
+function showSuccess() {
+  document.getElementById('polling-status').style.display = 'none';
+  document.getElementById('qr-timer').style.display = 'none';
+  document.getElementById('qr-success').style.display = 'block';
+  Toast.success('Saweria berhasil! Terima kasih 💖');
+  loadFeed();
+}
+
+function showExpired() {
+  document.getElementById('polling-status').style.display = 'none';
+  document.getElementById('qr-timer').innerHTML = '<i class="fas fa-times-circle"></i> Expired';
+  document.getElementById('qr-expired').style.display = 'block';
+}
+
+function resetForm() {
+  stopPolling(); clearInterval(timerInterval);
+  currentSaweria = null;
+  document.getElementById('form-section').style.display = 'block';
+  document.getElementById('qris-section').style.display = 'none';
+  document.getElementById('amount').value = '';
+  document.getElementById('note').value = '';
+}
+
+init();
+</script>
+</body>
+</html>

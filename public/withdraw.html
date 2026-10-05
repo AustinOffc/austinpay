@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Withdraw — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+  <style>
+    /* Bukti Withdraw (receipt) — dibikin scoped di sini karena cuma dipakai
+       di halaman ini. Warna sengaja di-hardcode (bukan var(--...)) supaya
+       hasil download gambarnya selalu putih/terang & konsisten, gak ikut
+       tema dark/light user. */
+    .receipt-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid #eef1f4; }
+    .receipt-row:last-child { border-bottom:none; }
+    .receipt-label { font-size:13px; color:#64748b; }
+    .receipt-value { font-size:13px; font-weight:600; color:#0f172a; text-align:right; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item active" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Withdraw</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="max-width:560px;margin:0 auto">
+
+        <!-- Saldo Info -->
+        <div class="card mb-16">
+          <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="stat-icon red"><i class="fas fa-credit-card"></i></div>
+              <div>
+                <div class="stat-label">Saldo Tersedia</div>
+                <div style="font-size:20px;font-weight:700" id="balance-display">Rp 0</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);text-align:right">
+              Fee withdraw: <strong id="fee-display" style="color:var(--success)">Gratis</strong><br>
+              Min withdraw: <strong id="min-display" style="color:var(--success)">Tanpa minimal</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card mb-16">
+          <div class="card-body" style="display:flex;gap:8px;padding:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="tab-manual" style="flex:1 1 100px" onclick="switchTab('manual')"><i class="fas fa-university"></i> Manual</button>
+            <button class="btn btn-outline" id="tab-instant" style="flex:1 1 100px" onclick="switchTab('instant')"><i class="fas fa-bolt"></i> Instant</button>
+            <button class="btn btn-outline" id="tab-bebas" style="flex:1 1 100px" onclick="switchTab('bebas')"><i class="fas fa-sliders"></i> Bebas Nominal</button>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="card" id="panel-manual">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-building-columns" style="color:var(--danger)"></i> Rekening / E-wallet Withdraw</span>
+          </div>
+          <div class="card-body">
+            <div id="account-alert"></div>
+
+            <p class="text-muted text-xs mb-8">Simpan data rekening/e-wallet tujuan withdraw kamu.</p>
+
+            <!-- Ringkasan rekening tersimpan -->
+            <div id="account-view" style="display:none">
+              <div style="display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px">
+                <div id="account-view-logo"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700" id="account-view-method"></div>
+                  <div class="text-muted text-xs" id="account-view-number"></div>
+                  <div class="text-muted text-xs" id="account-view-name"></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline" style="flex:1" onclick="startEditAccount()"><i class="fas fa-pen"></i> Ubah</button>
+                <button class="btn btn-outline" style="flex:1;color:var(--danger);border-color:var(--danger)" onclick="startDeleteAccount()"><i class="fas fa-trash"></i> Hapus</button>
+              </div>
+            </div>
+
+            <!-- Form simpan / ubah rekening -->
+            <div id="account-form">
+              <div class="form-group">
+                <label class="form-label">1. Bank / E-wallet</label>
+                <input type="text" class="form-control" id="acc_method" placeholder="Ketik nama bank/e-wallet, mis. SeaBank, Dana, BCA" maxlength="40">
+              </div>
+              <div class="form-group">
+                <label class="form-label">2. Nomor Rekening / E-wallet</label>
+                <input type="text" class="form-control" id="acc_number" placeholder="Nomor rekening atau nomor HP e-wallet">
+              </div>
+              <div class="form-group">
+                <label class="form-label">3. Nama Pemilik Rekening / E-wallet</label>
+                <input type="text" class="form-control" id="acc_name" placeholder="Sesuai nama di aplikasi/bank">
+              </div>
+              <div class="form-group">
+                <label class="form-label">PIN Withdraw</label>
+                <input type="password" class="form-control" id="acc_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Masukkan PIN 6 digit untuk konfirmasi">
+              </div>
+              <div id="pin-missing-hint-manual" style="display:none" class="alert alert-warning mb-8">
+                <i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-danger btn-full btn-lg" id="acc-save-btn" onclick="saveAccount()">
+                  <i class="fas fa-save"></i> <span id="acc-save-label">Simpan</span>
+                </button>
+                <button class="btn btn-outline btn-lg" id="acc-cancel-btn" style="display:none" onclick="cancelEditAccount()">Batal</button>
+              </div>
+            </div>
+
+            <!-- Konfirmasi hapus -->
+            <div id="account-delete-confirm" style="display:none;margin-top:12px">
+              <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan PIN untuk menghapus data rekening.</div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="del_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="PIN 6 digit">
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-danger" style="flex:1" onclick="confirmDeleteAccount()">Hapus Sekarang</button>
+                <button class="btn btn-outline" style="flex:1" onclick="cancelDeleteAccount()">Batal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="panel-manual-submit">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-upload" style="color:var(--danger)"></i> Request Withdraw</span>
+          </div>
+          <div class="card-body">
+            <div id="form-alert"></div>
+
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Withdraw diproses <strong>MANUAL</strong> oleh admin. Proses 1&times;24 jam kerja.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nominal Withdraw</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="amount" placeholder="Masukkan nominal" oninput="updateFeeInfo()">
+                <span class="input-addon" style="font-size:12px;font-weight:600;right:12px">IDR</span>
+              </div>
+              <p class="form-hint" id="total-hint">Total dipotong: Rp 0</p>
+            </div>
+
+            <div id="no-account-hint" style="display:none" class="alert alert-warning mb-8">
+              <i class="fas fa-exclamation-triangle"></i> Simpan dulu data rekening/e-wallet di atas sebelum mengajukan withdraw.
+            </div>
+
+            <div style="display:flex;gap:8px" class="mt-8">
+              <button class="btn btn-danger btn-lg" style="flex:1" id="wd-btn" onclick="submitWithdraw()">
+                <i class="fas fa-paper-plane"></i> Ajukan Withdraw
+              </button>
+              <button class="btn btn-outline btn-lg" style="flex:1" id="wd-all-btn" onclick="withdrawAll()" title="Ajukan withdraw seluruh saldo">
+                <i class="fas fa-wallet"></i> Withdraw All
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instant Withdraw Panel -->
+        <div class="card" id="panel-instant" style="display:none">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-bolt" style="color:var(--warning)"></i> Withdraw Instant ke E-Wallet / Virtual Account</span>
+          </div>
+          <div class="card-body">
+            <div id="instant-alert"></div>
+            <div class="alert alert-info">
+              <i class="fas fa-bolt"></i> Dana langsung masuk ke e-wallet / rekening Virtual Account kamu secara otomatis (real-time).
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="instant-phone-label">1. Nomor Tujuan</label>
+              <input type="text" class="form-control" id="instant-phone" placeholder="Masukkan nomor HP e-wallet tujuan">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">2. Pilih E-Wallet</label>
+              <div class="method-grid" id="instant-wallet-grid"></div>
+            </div>
+
+            <div class="form-group" id="instant-nominal-wrap" style="display:none">
+              <label class="form-label" id="instant-nominal-label">3. Pilih Nominal</label>
+              <div id="instant-nominal-list" style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">4. PIN Withdraw</label>
+              <input type="password" class="form-control" id="instant_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Masukkan PIN 6 digit">
+            </div>
+            <div id="pin-missing-hint-instant" style="display:none" class="alert alert-warning mb-8">
+              <i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.
+            </div>
+
+            <button class="btn btn-warning btn-full btn-lg mt-8" id="instant-btn" onclick="submitInstantWithdraw()" disabled>
+              <i class="fas fa-bolt"></i> Withdraw Sekarang
+            </button>
+          </div>
+        </div>
+
+        <!-- Bebas Nominal Withdraw Panel -->
+        <!-- [BARU] Sengaja dipisah TOTAL dari panel Withdraw Instant di atas
+             (bukan digabung sebagai satu opsi di dalamnya) — flow-nya beda:
+             di sini SELALU isi nominal sendiri, tidak ada daftar nominal
+             tetap untuk dipilih. -->
+        <div class="card" id="panel-bebas" style="display:none">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-sliders" style="color:var(--primary)"></i> Withdraw Bebas Nominal ke E-Wallet / Virtual Account</span>
+          </div>
+          <div class="card-body">
+            <div id="bebas-alert"></div>
+            <div class="alert alert-info">
+              <i class="fas fa-sliders"></i>
+              <span>Withdraw dengan nominal <strong>BEBAS</strong> sesuai kebutuhanmu, tidak terbatas pada daftar nominal tetap. Dana masuk otomatis (real-time) ke e-wallet / rekening Virtual Account tujuan. Dikenakan fee tambahan (lihat keterangan fee di bawah setelah pilih e-wallet).</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" id="bebas-phone-label">1. Nomor Tujuan</label>
+              <input type="text" class="form-control" id="bebas-phone" placeholder="Masukkan nomor HP e-wallet tujuan">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">2. Pilih E-Wallet / Virtual Account</label>
+              <div class="method-grid" id="bebas-wallet-grid"></div>
+            </div>
+
+            <div class="form-group" id="bebas-nominal-wrap" style="display:none">
+              <label class="form-label">3. Masukkan Nominal</label>
+              <input type="number" class="form-control" id="bebas-nominal-input" placeholder="Masukkan nominal withdraw" oninput="updateBebasPreview()">
+              <p class="form-hint" id="bebas-nominal-hint"></p>
+              <!-- [BARU] Rincian fee FINAL (fee provider + fee/margin AustinPay
+                   sudah dijumlah jadi satu angka) supaya user tahu persis
+                   berapa yang akan dipotong dari saldo di luar nominal yang
+                   dia minta, SEBELUM submit. -->
+              <div id="bebas-preview" class="alert alert-info" style="display:none;margin-top:8px"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">4. PIN Withdraw</label>
+              <input type="password" class="form-control" id="bebas_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Masukkan PIN 6 digit">
+            </div>
+            <div id="pin-missing-hint-bebas" style="display:none" class="alert alert-warning mb-8">
+              <i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.
+            </div>
+
+            <button class="btn btn-primary btn-full btn-lg mt-8" id="bebas-btn" onclick="submitBebasWithdraw()" disabled>
+              <i class="fas fa-paper-plane"></i> Withdraw Sekarang
+            </button>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-history" style="color:var(--primary)"></i> Riwayat Withdraw</span>
+            <a href="/history?tab=withdraw" style="font-size:13px;color:var(--primary)">Lihat Semua</a>
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>Metode</th><th>Rekening</th><th>Nominal</th><th>Status</th><th>Waktu</th><th>Bukti</th></tr></thead>
+              <tbody id="wd-history"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Bukti Withdraw: rincian transaksi yang bisa didownload user sebagai gambar -->
+<div class="modal-overlay" id="receipt-modal-overlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px"></i>Bukti Withdraw</span>
+      <button class="modal-close" id="receipt-modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div id="receipt-card" style="background:#f4f5f7;padding:28px 20px;font-family:inherit">
+        <div style="text-align:center;margin-bottom:22px">
+          <div id="receipt-status-icon" style="width:56px;height:56px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:22px"></div>
+          <div id="receipt-status-label" style="font-size:14px;font-weight:700;margin-bottom:8px"></div>
+          <div style="font-size:13px;color:#94a3b8">Nominal Withdraw</div>
+          <div style="font-size:30px;font-weight:800;color:#0f172a">Rp <span id="receipt-amount"></span></div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:2px 18px">
+          <div class="receipt-row">
+            <span class="receipt-label">Dari</span>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:#0f172a">AustinPay</div>
+              <div style="font-size:12px;color:#64748b">austinstore.id</div>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Ke</span>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:#0f172a" id="receipt-to-name"></div>
+              <div style="font-size:12px;color:#64748b" id="receipt-to-account"></div>
+            </div>
+          </div>
+          <div class="receipt-row"><span class="receipt-label">Jumlah Withdraw</span><span class="receipt-value" id="receipt-jumlah"></span></div>
+          <div class="receipt-row"><span class="receipt-label">No. Transaksi</span><span class="receipt-value" id="receipt-txid" style="font-size:11px;word-break:break-all;max-width:200px"></span></div>
+          <div class="receipt-row"><span class="receipt-label">Metode Transaksi</span><span class="receipt-value" id="receipt-method"></span></div>
+          <div class="receipt-row"><span class="receipt-label">Waktu Transaksi</span><span class="receipt-value" id="receipt-time" style="font-size:12px"></span></div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:18px">AustinPay · austinstore.id</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="receipt-modal-close2">Tutup</button>
+      <button class="btn btn-primary" id="receipt-download-btn"><i class="fas fa-download"></i> Download Bukti</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script>
+// ── Logo badge (warna asli brand) untuk metode withdraw & e-wallet ──
+const WALLET_META = {
+  Dana: { bg: '#118eea', text: 'DANA', size: 9.5 },
+  DANA: { bg: '#118eea', text: 'DANA', size: 9.5 },
+  GoPay: { bg: '#00aa13', text: 'Go', size: 14 },
+  OVO: { bg: '#4c3494', text: 'OVO', size: 11 },
+  ShopeePay: { bg: '#ee4d2d', text: 'SP', size: 13 },
+  LinkAja: { bg: '#e4032e', text: 'LA', size: 13 },
+  iSaku: { bg: '#d4202c', text: 'iS', size: 13 },
+  Doku: { bg: '#f36f21', text: 'DK', size: 13 },
+  AstraPay: { bg: '#0058a3', text: 'AP', size: 13 },
+  GrabPay: { bg: '#00b14f', text: 'Gr', size: 13 },
+  Kaspro: { bg: '#f7941e', text: 'Kp', size: 12 },
+  BRI: { bg: '#00529c', text: 'BRI', size: 10 },
+  BCA: { bg: '#0066b3', text: 'BCA', size: 10 },
+  Mandiri: { bg: '#003d79', text: 'MDR', size: 9 },
+  BNI: { bg: '#f37021', text: 'BNI', size: 10 },
+  BSI: { bg: '#00a651', text: 'BSI', size: 10 },
+  CIMB: { bg: '#7a1f2b', text: 'CIMB', size: 8.5 },
+  Permata: { bg: '#ed1c24', text: 'PMT', size: 9 },
+};
+function walletLogoHtml(name) {
+  const meta = WALLET_META[name] || { bg: '#64748b', text: String(name).slice(0, 2).toUpperCase(), size: 12 };
+  return `<div style="width:40px;height:40px;min-width:40px;margin:0 auto 6px;border-radius:16px 0;background:${meta.bg};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:${meta.size}px;letter-spacing:-.02em;line-height:1;text-transform:uppercase;box-shadow:0 1px 3px rgba(0,0,0,.25);">${meta.text}</div>`;
+}
+
+let feeWithdraw = 0; // Withdraw manual (pending) tanpa fee sama sekali
+let userBalance = 0;
+let hasPin = true; // asumsi true sampai status PIN selesai dicek, supaya tidak flash warning
+
+async function init() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+  userBalance = res.wallet?.balance || 0;
+  document.getElementById('balance-display').textContent = formatRupiah(userBalance);
+  await loadAccount();
+  loadHistory();
+  checkPinStatus();
+}
+
+// [BARU] PIN withdraw wajib diatur dulu sebelum bisa simpan/ubah/hapus
+// rekening withdraw. Kalau belum, field PIN & tombol simpan dimatikan &
+// diarahkan ke halaman Profil untuk mengatur PIN. Tombol "Ajukan Withdraw"
+// sendiri tidak lagi butuh PIN (sudah diverifikasi saat menyimpan rekening).
+async function checkPinStatus() {
+  const res = await API.get('/api/user/pin/status');
+  hasPin = res.success ? !!res.has_pin : true;
+  document.getElementById('pin-missing-hint-manual').style.display = hasPin ? 'none' : '';
+  document.getElementById('pin-missing-hint-instant').style.display = hasPin ? 'none' : '';
+  document.getElementById('pin-missing-hint-bebas').style.display = hasPin ? 'none' : '';
+  if (!hasPin) {
+    document.getElementById('acc-save-btn').disabled = true;
+    document.getElementById('acc_pin').disabled = true;
+    document.getElementById('instant_pin').disabled = true;
+    document.getElementById('bebas_pin').disabled = true;
+  }
+}
+
+document.querySelectorAll('#acc_pin, #del_pin, #instant_pin, #bebas_pin').forEach(el => {
+  el.addEventListener('input', () => { el.value = el.value.replace(/\D/g, '').slice(0, 6); });
+});
+
+function updateFeeInfo() {
+  const amount = parseInt(document.getElementById('amount').value) || 0;
+  document.getElementById('total-hint').textContent =
+    amount > 0 ? `Total dipotong: ${formatRupiah(amount)} (tanpa fee)` : 'Total dipotong: Rp 0';
+}
+
+// ── Rekening / e-wallet withdraw tersimpan ──────────────────────
+let savedAccount = null;
+
+function renderAccountView(account) {
+  document.getElementById('account-view-logo').innerHTML = walletLogoHtml(account.method);
+  document.getElementById('account-view-method').textContent = account.method;
+  document.getElementById('account-view-number').textContent = account.account_number;
+  document.getElementById('account-view-name').textContent = account.account_name;
+}
+
+function showAccountView() {
+  document.getElementById('account-view').style.display = '';
+  document.getElementById('account-form').style.display = 'none';
+  document.getElementById('account-delete-confirm').style.display = 'none';
+}
+
+function showAccountForm(isEdit) {
+  document.getElementById('account-view').style.display = 'none';
+  document.getElementById('account-form').style.display = '';
+  document.getElementById('account-delete-confirm').style.display = 'none';
+  document.getElementById('acc-cancel-btn').style.display = isEdit ? '' : 'none';
+  document.getElementById('acc-save-label').textContent = isEdit ? 'Update' : 'Simpan';
+}
+
+async function loadAccount() {
+  const res = await API.get('/api/withdraw/account');
+  const hint = document.getElementById('no-account-hint');
+  if (res.success && res.has_account) {
+    savedAccount = res.account;
+    renderAccountView(savedAccount);
+    showAccountView();
+    hint.style.display = 'none';
+  } else {
+    savedAccount = null;
+    showAccountForm(false);
+    hint.style.display = '';
+  }
+}
+
+function startEditAccount() {
+  document.getElementById('acc_method').value = savedAccount?.method || '';
+  document.getElementById('acc_number').value = savedAccount?.account_number || '';
+  document.getElementById('acc_name').value = savedAccount?.account_name || '';
+  document.getElementById('acc_pin').value = '';
+  showAccountForm(true);
+}
+
+function cancelEditAccount() {
+  document.getElementById('acc_pin').value = '';
+  if (savedAccount) {
+    showAccountView();
+  } else {
+    showAccountForm(false);
+  }
+}
+
+async function saveAccount() {
+  const method = document.getElementById('acc_method').value.trim();
+  const account_number = document.getElementById('acc_number').value.trim();
+  const account_name = document.getElementById('acc_name').value.trim();
+  const pin = document.getElementById('acc_pin').value.trim();
+  const alertBox = document.getElementById('account-alert');
+  alertBox.innerHTML = '';
+
+  if (!hasPin) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.</div>';
+    return;
+  }
+  if (!method) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nama bank / e-wallet terlebih dahulu</div>';
+    return;
+  }
+  if (!account_number) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nomor rekening / e-wallet</div>';
+    return;
+  }
+  if (!account_name) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nama pemilik rekening / e-wallet</div>';
+    return;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan PIN withdraw (6 digit)</div>';
+    return;
+  }
+
+  const btn = document.getElementById('acc-save-btn');
+  btnLoading(btn, true);
+  const res = await API.post('/api/withdraw/account', { method, account_number, account_name, pin });
+  btnLoading(btn, false);
+  document.getElementById('acc_pin').value = '';
+
+  if (!res.success && res.code === 'PIN_NOT_SET') checkPinStatus();
+
+  if (res.success) {
+    Toast.success(res.message);
+    await loadAccount();
+  } else {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}</div>`;
+  }
+}
+
+function startDeleteAccount() {
+  document.getElementById('account-view').style.display = 'none';
+  document.getElementById('account-delete-confirm').style.display = '';
+  document.getElementById('del_pin').value = '';
+}
+
+function cancelDeleteAccount() {
+  document.getElementById('del_pin').value = '';
+  showAccountView();
+}
+
+async function confirmDeleteAccount() {
+  const pin = document.getElementById('del_pin').value.trim();
+  const alertBox = document.getElementById('account-alert');
+  alertBox.innerHTML = '';
+
+  if (!/^\d{6}$/.test(pin)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan PIN withdraw (6 digit)</div>';
+    return;
+  }
+
+  const res = await API.delete('/api/withdraw/account', { pin });
+  document.getElementById('del_pin').value = '';
+
+  if (!res.success && res.code === 'PIN_NOT_SET') checkPinStatus();
+
+  if (res.success) {
+    Toast.success(res.message);
+    await loadAccount();
+  } else {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}</div>`;
+    document.getElementById('account-delete-confirm').style.display = '';
+  }
+}
+
+// ── Ajukan withdraw — tinggal nominal, rekening tujuan sudah tersimpan ──
+// [UPDATE] Tidak ada lagi minimal withdraw — nominal berapa saja boleh,
+// asal > 0 dan tidak melebihi saldo yang tersedia.
+async function submitWithdraw() {
+  const amount = parseInt(document.getElementById('amount').value);
+  const alertBox = document.getElementById('form-alert');
+  alertBox.innerHTML = '';
+
+  if (!savedAccount) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Simpan dulu data rekening/e-wallet di atas sebelum mengajukan withdraw.</div>';
+    return;
+  }
+  if (!amount || amount <= 0) {
+    alertBox.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nominal withdraw yang valid</div>`;
+    return;
+  }
+  if (amount > userBalance) {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Saldo tidak cukup. Saldo kamu: ${formatRupiah(userBalance)}</div>`;
+    return;
+  }
+
+  const btn = document.getElementById('wd-btn');
+  btnLoading(btn, true);
+
+  const res = await API.post('/api/withdraw/create', { amount });
+  btnLoading(btn, false);
+
+  if (!res.success && res.code === 'ACCOUNT_NOT_SET') {
+    await loadAccount();
+  }
+
+  if (res.success) {
+    Toast.success(res.message);
+    alertBox.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${res.message}</div>`;
+    document.getElementById('amount').value = '';
+    document.getElementById('total-hint').textContent = 'Total dipotong: Rp 0';
+    const me = await API.get('/api/auth/me');
+    if (me.wallet) {
+      userBalance = me.wallet.balance;
+      document.getElementById('balance-display').textContent = formatRupiah(userBalance);
+    }
+    loadHistory();
+  } else {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}</div>`;
+  }
+}
+
+// ── Withdraw All — isi nominal dengan seluruh saldo lalu langsung ajukan ──
+async function withdrawAll() {
+  const alertBox = document.getElementById('form-alert');
+  alertBox.innerHTML = '';
+
+  if (!savedAccount) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Simpan dulu data rekening/e-wallet di atas sebelum mengajukan withdraw.</div>';
+    return;
+  }
+  if (!userBalance || userBalance <= 0) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Saldo kamu kosong, tidak ada yang bisa di-withdraw.</div>';
+    return;
+  }
+  if (!await austinConfirm(`Ajukan withdraw seluruh saldo sebesar ${formatRupiah(userBalance)}?`)) return;
+
+  document.getElementById('amount').value = userBalance;
+  updateFeeInfo();
+  await submitWithdraw();
+}
+
+// Data riwayat withdraw yang lagi ditampilkan di tabel, disimpan di sini
+// (bukan cuma dirender) supaya openReceipt(i) bisa ambil detail lengkapnya
+// buat ditampilkan di modal Bukti Withdraw.
+let wdHistoryData = [];
+
+async function loadHistory() {
+  // [FIX] Sebelumnya cuma fetch /api/withdraw/history (withdraw MANUAL) —
+  // Withdraw Instant (instant_withdraws) gak pernah ikut diambil sama
+  // sekali, jadi transaksi instant selalu keliatan "Belum ada riwayat
+  // withdraw" di sini padahal aslinya ada (bisa dicek di halaman Riwayat
+  // Transaksi umum yang baca dari tabel berbeda). Sekarang ambil dua-duanya
+  // lalu digabung & diurut ulang berdasarkan tanggal.
+  const [manualRes, instantRes] = await Promise.all([
+    API.get('/api/withdraw/history?limit=5'),
+    API.get('/api/instant-withdraw/history?limit=5'),
+  ]);
+
+  const manualRows = (manualRes.success ? manualRes.data : []).map(w => ({
+    id: w.id,
+    kind: 'manual',
+    method: w.method,
+    account_number: w.account_number,
+    account_name: w.account_name,
+    amount: w.amount,
+    status: w.status,
+    createdAt: w.createdAt,
+    updatedAt: w.updatedAt,
+  }));
+  const instantRows = (instantRes.success ? instantRes.data : []).map(w => ({
+    id: w.id,
+    kind: 'instant',
+    method: w.wallet,
+    account_number: w.phone,
+    account_name: w.product_name,
+    amount: w.sell_price,
+    status: w.status,
+    createdAt: w.createdAt,
+    updatedAt: w.updatedAt,
+  }));
+
+  wdHistoryData = [...manualRows, ...instantRows]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  const tbody = document.getElementById('wd-history');
+  if (!wdHistoryData.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Belum ada riwayat withdraw</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = wdHistoryData.map((w, i) => `
+    <tr>
+      <td><strong>${w.method}</strong></td>
+      <td><code style="font-size:12px">${w.account_number}</code></td>
+      <td>${formatRupiah(w.amount)}</td>
+      <td>${statusBadge(w.status)}</td>
+      <td class="text-muted text-xs">${formatDate(w.createdAt)}</td>
+      <td><button class="btn btn-outline btn-sm" data-action="receipt" data-index="${i}" title="Lihat & download bukti"><i class="fas fa-receipt"></i></button></td>
+    </tr>
+  `).join('');
+
+  // [FIX] CSP cuma meng-hash-whitelist inline onclick STATIS yang ada di
+  // file HTML (lihat csp.service.js). onclick="openReceipt(${i})" di atas
+  // nilainya beda tiap baris, jadi hash-nya gak pernah cocok sama whitelist
+  // statis -> browser diam-diam block handler ini, tombol Bukti jadi gak
+  // bisa dibuka sama sekali. Solusi: data-attribute + event delegation
+  // (pola sama kayak tombol Aksi di admin.html / renderPagination di app.js).
+  if (!tbody._receiptActionBound) {
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action="receipt"]');
+      if (!btn) return;
+      openReceipt(Number(btn.dataset.index));
+    });
+    tbody._receiptActionBound = true;
+  }
+}
+
+// ── Bukti Withdraw: modal rincian transaksi + download sebagai gambar ──
+const RECEIPT_STATUS_META = {
+  success:    { bg: '#dcfce7', color: '#16a34a', icon: 'fa-check',           label: 'Withdraw Berhasil' },
+  paid:       { bg: '#dcfce7', color: '#16a34a', icon: 'fa-check',           label: 'Withdraw Berhasil' },
+  pending:    { bg: '#fef9c3', color: '#ca8a04', icon: 'fa-clock',           label: 'Menunggu Diproses' },
+  processing: { bg: '#dbeafe', color: '#2563eb', icon: 'fa-arrows-rotate',   label: 'Sedang Diproses' },
+  failed:     { bg: '#fee2e2', color: '#dc2626', icon: 'fa-xmark',           label: 'Withdraw Gagal' },
+  rejected:   { bg: '#fee2e2', color: '#dc2626', icon: 'fa-xmark',           label: 'Withdraw Ditolak' },
+};
+
+let currentReceipt = null;
+
+function openReceipt(index) {
+  const w = wdHistoryData[index];
+  if (!w) return;
+  currentReceipt = w;
+
+  const meta = RECEIPT_STATUS_META[w.status] || { bg: '#e2e8f0', color: '#475569', icon: 'fa-circle-question', label: statusBadge(w.status).replace(/<[^>]+>/g, '') };
+  const iconEl = document.getElementById('receipt-status-icon');
+  iconEl.style.background = meta.bg;
+  iconEl.style.color = meta.color;
+  iconEl.innerHTML = `<i class="fas ${meta.icon}"></i>`;
+  const labelEl = document.getElementById('receipt-status-label');
+  labelEl.textContent = meta.label;
+  labelEl.style.color = meta.color;
+
+  document.getElementById('receipt-amount').textContent = formatRupiah(w.amount, false);
+  document.getElementById('receipt-to-name').textContent = w.method;
+  document.getElementById('receipt-to-account').textContent = w.account_name
+    ? `${w.account_name} — ${w.account_number}`
+    : w.account_number;
+  document.getElementById('receipt-jumlah').textContent = formatRupiah(w.amount);
+  document.getElementById('receipt-txid').textContent = w.id;
+  document.getElementById('receipt-method').textContent = w.kind === 'instant' ? `${w.method} (Instant)` : `${w.method} (Manual)`;
+  document.getElementById('receipt-time').textContent = formatDate(w.updatedAt || w.createdAt);
+
+  Modal.open('receipt-modal-overlay');
+}
+
+async function downloadReceipt() {
+  if (!currentReceipt) return;
+  const btn = document.getElementById('receipt-download-btn');
+  btnLoading(btn, true);
+  try {
+    const canvas = await html2canvas(document.getElementById('receipt-card'), {
+      backgroundColor: '#f4f5f7',
+      scale: 2,
+      useCORS: true,
+    });
+    const link = document.createElement('a');
+    link.download = `Bukti-Withdraw-${currentReceipt.id}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    Toast.error('Gagal membuat gambar bukti. Coba lagi.');
+  } finally {
+    btnLoading(btn, false);
+  }
+}
+
+document.getElementById('receipt-modal-close').addEventListener('click', () => Modal.close('receipt-modal-overlay'));
+document.getElementById('receipt-modal-close2').addEventListener('click', () => Modal.close('receipt-modal-overlay'));
+document.getElementById('receipt-download-btn').addEventListener('click', downloadReceipt);
+
+init();
+
+// ── Withdraw Instant (e-wallet via OkeConnect) ───────────────────
+let instantWallet = '';
+let instantProductCode = '';
+let instantProducts = [];
+// [BARU] Map nama wallet -> 'phone' | 'va', diisi dari getWallets(). Dipakai
+// buat ganti label/placeholder field nomor tujuan & validasi formatnya saat
+// wallet Virtual Account bank (Mandiri/BNI/BRI/CIMB/Permata) dipilih.
+let instantWalletTypes = {};
+
+function switchTab(tab) {
+  document.getElementById('panel-manual').style.display = tab === 'manual' ? '' : 'none';
+  document.getElementById('panel-manual-submit').style.display = tab === 'manual' ? '' : 'none';
+  document.getElementById('panel-instant').style.display = tab === 'instant' ? '' : 'none';
+  document.getElementById('panel-bebas').style.display = tab === 'bebas' ? '' : 'none';
+  document.getElementById('tab-manual').className = tab === 'manual' ? 'btn btn-primary' : 'btn btn-outline';
+  document.getElementById('tab-instant').className = tab === 'instant' ? 'btn btn-primary' : 'btn btn-outline';
+  document.getElementById('tab-bebas').className = tab === 'bebas' ? 'btn btn-primary' : 'btn btn-outline';
+  if (tab === 'instant' && !document.getElementById('instant-wallet-grid').children.length) loadInstantWallets();
+  if (tab === 'bebas' && !document.getElementById('bebas-wallet-grid').children.length) loadBebasWallets();
+}
+
+const WALLET_ICONS = {}; // deprecated — dipakai WALLET_META + walletLogoHtml() sekarang
+
+async function loadInstantWallets() {
+  const res = await API.get('/api/instant-withdraw/wallets');
+  if (!res.success) return;
+  instantWalletTypes = res.wallet_types || {};
+  // [BARU] Tab Withdraw Instant SEKARANG cuma nampilin wallet yang punya
+  // daftar nominal TETAP (wallet_has_fixed) — wallet yang cuma bisa Bebas
+  // Nominal dipindah total ke tab "Bebas Nominal" (loadBebasWallets()),
+  // supaya dua alur ini tidak lagi tercampur di satu list yang sama.
+  const hasFixed = res.wallet_has_fixed || {};
+  const wallets = res.wallets.filter(w => hasFixed[w] !== false);
+  const grid = document.getElementById('instant-wallet-grid');
+  grid.innerHTML = wallets.map(w => `
+    <button class="method-btn" data-wallet="${w}">
+      ${walletLogoHtml(w)}
+      <div>${w}</div>
+    </button>
+  `).join('');
+}
+
+// [FIX — CSP block] Sama seperti method-grid: onclick inline pada tombol
+// yang di-generate dinamis TIDAK akan pernah lolos whitelist hash CSP
+// (src/services/csp.service.js), jadi klik-nya diblokir browser secara
+// diam-diam (gak ada error, gak ada animasi, terlihat kayak "gak jalan").
+// Pindah ke event delegation.
+document.getElementById('instant-wallet-grid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.method-btn');
+  if (!btn) return;
+  selectInstantWallet(btn.dataset.wallet);
+});
+
+async function selectInstantWallet(wallet) {
+  instantWallet = wallet;
+  instantProductCode = '';
+  document.querySelectorAll('#instant-wallet-grid .method-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.wallet === wallet);
+  });
+  document.getElementById('instant-btn').disabled = true;
+
+  // [BARU] Wallet Virtual Account bank (Mandiri/BNI/BRI/CIMB/Permata) —
+  // nomor tujuannya Nomor Virtual Account, BUKAN nomor HP, jadi label &
+  // placeholder field #1 disesuaikan. Nilai lama dikosongkan supaya user
+  // tidak salah kirim nomor HP ke kolom VA atau sebaliknya.
+  const isVA = instantWalletTypes[wallet] === 'va';
+  document.getElementById('instant-phone').value = '';
+  document.getElementById('instant-phone-label').textContent = isVA ? '1. Nomor Virtual Account Tujuan' : '1. Nomor Tujuan';
+  document.getElementById('instant-phone').placeholder = isVA ? 'Masukkan Nomor Virtual Account (VA) tujuan' : 'Masukkan nomor HP e-wallet tujuan';
+
+  const listEl = document.getElementById('instant-nominal-list');
+  const wrap = document.getElementById('instant-nominal-wrap');
+  wrap.style.display = '';
+  listEl.style.display = '';
+  listEl.innerHTML = `<div class="text-center text-muted" style="padding:16px"><i class="fas fa-spinner fa-spin"></i> Memuat produk...</div>`;
+
+  const res = await API.get(`/api/instant-withdraw/products?wallet=${encodeURIComponent(wallet)}`);
+  if (!res.success) {
+    listEl.innerHTML = `<div class="text-center text-danger" style="padding:16px"><i class="fas fa-exclamation-triangle"></i> ${res.message || 'Gagal memuat produk'}</div>`;
+    return;
+  }
+  // [BARU] Tab ini SEKARANG khusus nominal TETAP — produk "Bebas Nominal"
+  // (open_denom) sudah dipindah total ke tab Withdraw Bebas Nominal
+  // (selectBebasWallet()), jadi difilter keluar di sini biar tidak dobel.
+  instantProducts = (res.products || []).filter(p => !p.open_denom);
+  if (!instantProducts.length) {
+    listEl.innerHTML = `<div class="text-center text-muted" style="padding:16px">Produk belum tersedia untuk ${wallet}</div>`;
+    return;
+  }
+
+  document.getElementById('instant-nominal-label').textContent = '3. Pilih Nominal';
+
+  // [FIX] Sebelumnya tombol menampilkan nama produk mentah dari provider
+  // (mis. "DANA 1.000") berdempetan dengan harga jual ("Rp 1.350") tanpa
+  // spasi, jadi kelihatan dobel & membingungkan ("DANA 1.000Rp 1.350").
+  // Sekarang cukup tampilkan nama wallet yang lagi dipilih + harga final
+  // saja (mis. "DANA" — "Rp 1.350"), tanpa angka nominal mentahnya.
+  listEl.innerHTML = instantProducts.map(p => `
+    <button class="card" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;text-align:left;border:1px solid var(--border);background:var(--bg-card);cursor:pointer" data-code="${p.code}">
+      <div>
+        <div style="font-weight:600;color:var(--success)">${instantWallet}</div>
+      </div>
+      <div style="font-weight:700;color:var(--primary)">${formatRupiah(p.sell_price)}</div>
+    </button>
+  `).join('');
+}
+
+// [FIX — CSP block] Tombol nominal juga di-generate dinamis -> onclick
+// inline diblokir CSP dengan cara yang sama. Event delegation di
+// container, bukan atribut onclick di tiap tombol.
+document.getElementById('instant-nominal-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-code]');
+  if (!btn) return;
+  selectInstantProduct(btn.dataset.code);
+});
+
+function selectInstantProduct(code) {
+  instantProductCode = code;
+  document.querySelectorAll('#instant-nominal-list [data-code]').forEach(el => {
+    el.style.outline = el.dataset.code === code ? '2px solid var(--primary)' : 'none';
+  });
+  document.getElementById('instant-btn').disabled = false;
+}
+
+async function submitInstantWithdraw() {
+  const phone = document.getElementById('instant-phone').value.trim();
+  const pin = document.getElementById('instant_pin').value.trim();
+  const alertBox = document.getElementById('instant-alert');
+  alertBox.innerHTML = '';
+
+  if (!hasPin) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.</div>';
+    return;
+  }
+  // [BARU] Nomor Virtual Account bank BUKAN nomor HP (tidak wajib diawali
+  // "0", panjang beda-beda per bank) — validasi formatnya dipisah dari
+  // e-wallet berdasarkan instantWalletTypes[instantWallet].
+  const isVAWallet = instantWalletTypes[instantWallet] === 'va';
+  if (isVAWallet) {
+    if (!/^\d{5,20}$/.test(phone)) {
+      alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Nomor Virtual Account tidak valid</div>';
+      return;
+    }
+  } else if (!/^0\d{8,14}$/.test(phone)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Nomor HP tidak valid (gunakan format 08xxxxxxxxxx)</div>';
+    return;
+  }
+  if (!instantWallet || !instantProductCode) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Pilih e-wallet dan nominal terlebih dahulu</div>';
+    return;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan PIN withdraw (6 digit)</div>';
+    return;
+  }
+
+  const btn = document.getElementById('instant-btn');
+  btnLoading(btn, true);
+
+  const payload = { phone, wallet: instantWallet, product_code: instantProductCode, pin };
+  const res = await API.post('/api/instant-withdraw/create', payload);
+  btnLoading(btn, false);
+
+  // [BARU] Kosongkan field PIN setiap kali submit selesai (baik sukses
+  // maupun gagal) supaya tidak tanpa sadar submit ulang PIN yang sama;
+  // sinkronkan status PIN di halaman kalau ternyata belum pernah diatur.
+  document.getElementById('instant_pin').value = '';
+  if (!res.success && res.code === 'PIN_NOT_SET') {
+    checkPinStatus();
+  }
+
+  if (res.success) {
+    Toast.success(res.message);
+    alertBox.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${res.message}</div>`;
+    document.getElementById('instant-phone').value = '';
+    instantWallet = '';
+    instantProductCode = '';
+    document.querySelectorAll('#instant-wallet-grid .method-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('instant-nominal-wrap').style.display = 'none';
+    btn.disabled = true;
+    const me = await API.get('/api/auth/me');
+    if (me.wallet) {
+      userBalance = me.wallet.balance;
+      document.getElementById('balance-display').textContent = formatRupiah(userBalance);
+    }
+    loadHistory();
+  } else {
+    // [FIX] res.detail (pesan asli dari provider, mis. alasan gagal H2H)
+    // sebelumnya cuma dikirim backend tapi tidak pernah dirender di sini —
+    // jadi Austin cuma lihat pesan generik "Transaksi gagal diproses" tanpa
+    // tahu ALASAN sebenarnya. Sekarang detail ikut ditampilkan kalau ada.
+    const detailHtml = res.detail
+      ? `<div style="margin-top:4px;font-size:12px;opacity:.85">Detail: ${String(res.detail).replace(/</g, '&lt;')}</div>`
+      : '';
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}${detailHtml}</div>`;
+  }
+}
+
+// ── Withdraw Bebas Nominal (nominal BEBAS, TERPISAH dari tab Instant) ──
+// [BARU] Panel & alur ini sengaja berdiri sendiri, bukan digabung ke
+// dalam Withdraw Instant — wallet di sini SELALU pakai nominal yang
+// diisi user sendiri (open_denom), tidak ada daftar nominal tetap untuk
+// dipilih. Submit-nya tetap lewat endpoint yang sama
+// (/api/instant-withdraw/create, dengan `nominal` diisi) karena backend
+// (instantWithdraw.controller.js) sudah menangani produk open_denom di
+// jalur yang sama — cukup UI/state-nya yang dipisah di sini.
+let bebasWallet = '';
+let bebasWalletTypes = {};
+// Metadata produk Bebas Nominal wallet yang lagi aktif: { code, fee, min,
+// max, markup, markup_type } — diambil dari item open_denom:true pada
+// /api/instant-withdraw/products.
+let bebasProduct = null;
+let bebasNominal = 0;
+
+async function loadBebasWallets() {
+  const grid = document.getElementById('bebas-wallet-grid');
+  grid.innerHTML = `<div class="text-center text-muted" style="padding:16px"><i class="fas fa-spinner fa-spin"></i> Memuat e-wallet...</div>`;
+  const res = await API.get('/api/instant-withdraw/wallets');
+  if (!res.success) {
+    grid.innerHTML = `<div class="text-center text-danger" style="padding:16px"><i class="fas fa-exclamation-triangle"></i> Gagal memuat e-wallet</div>`;
+    return;
+  }
+  bebasWalletTypes = res.wallet_types || {};
+  const hasOpenDenom = res.wallet_has_open_denom || {};
+  const wallets = (res.wallets || []).filter(w => hasOpenDenom[w]);
+  if (!wallets.length) {
+    grid.innerHTML = `<div class="text-center text-muted" style="padding:16px">Withdraw Bebas Nominal belum tersedia untuk provider yang aktif saat ini.</div>`;
+    return;
+  }
+  grid.innerHTML = wallets.map(w => `
+    <button class="method-btn" data-wallet="${w}">
+      ${walletLogoHtml(w)}
+      <div>${w}</div>
+    </button>
+  `).join('');
+}
+
+// [FIX — CSP block] Sama seperti wallet grid Instant — event delegation,
+// bukan onclick inline di tombol yang di-generate dinamis.
+document.getElementById('bebas-wallet-grid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.method-btn');
+  if (!btn) return;
+  selectBebasWallet(btn.dataset.wallet);
+});
+
+async function selectBebasWallet(wallet) {
+  bebasWallet = wallet;
+  bebasProduct = null;
+  bebasNominal = 0;
+  document.querySelectorAll('#bebas-wallet-grid .method-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.wallet === wallet);
+  });
+  document.getElementById('bebas-btn').disabled = true;
+  document.getElementById('bebas-preview').style.display = 'none';
+
+  const isVA = bebasWalletTypes[wallet] === 'va';
+  document.getElementById('bebas-phone').value = '';
+  document.getElementById('bebas-phone-label').textContent = isVA ? '1. Nomor Virtual Account Tujuan' : '1. Nomor Tujuan';
+  document.getElementById('bebas-phone').placeholder = isVA ? 'Masukkan Nomor Virtual Account (VA) tujuan' : 'Masukkan nomor HP e-wallet tujuan';
+
+  const wrap = document.getElementById('bebas-nominal-wrap');
+  wrap.style.display = '';
+  document.getElementById('bebas-nominal-input').value = '';
+  document.getElementById('bebas-nominal-hint').textContent = 'Memuat...';
+
+  const res = await API.get(`/api/instant-withdraw/products?wallet=${encodeURIComponent(wallet)}`);
+  if (!res.success) {
+    document.getElementById('bebas-nominal-hint').textContent = res.message || 'Gagal memuat produk';
+    return;
+  }
+  const product = (res.products || []).find(p => p.open_denom);
+  if (!product) {
+    document.getElementById('bebas-nominal-hint').textContent = `Withdraw Bebas Nominal belum tersedia untuk ${wallet}`;
+    return;
+  }
+  bebasProduct = product;
+  const input = document.getElementById('bebas-nominal-input');
+  input.min = product.min; input.max = product.max;
+  // [BARU] Keterangan fee ditampilkan begitu wallet dipilih, SEBELUM user
+  // sempat isi nominal apapun — fee dasar dari provider ditampilkan
+  // sebagai gambaran awal, rincian fee FINAL (sudah + fee AustinPay)
+  // baru muncul di preview begitu nominal diisi (updateBebasPreview()).
+  document.getElementById('bebas-nominal-hint').textContent =
+    `Nominal antara ${formatRupiah(product.min)} - ${formatRupiah(product.max)}. Dikenakan fee, lihat rincian fee final di bawah setelah nominal diisi.`;
+}
+
+// [BARU] Preview nominal + fee FINAL (fee provider + fee/margin AustinPay
+// sudah dijumlah jadi satu angka "Fee") + total yang akan dipotong dari
+// saldo — dihitung client-side pakai fee + margin yang dikirim server
+// (product.fee/markup/markup_type), CUMA buat preview. Harga final tetap
+// dihitung ulang & otoritatif di server (provider.quoteOpenDenom) saat
+// submit, jadi tidak bisa dimanipulasi dari sisi client.
+function updateBebasPreview() {
+  const previewEl = document.getElementById('bebas-preview');
+  const btn = document.getElementById('bebas-btn');
+  if (!bebasProduct) { previewEl.style.display = 'none'; btn.disabled = true; return; }
+
+  const raw = document.getElementById('bebas-nominal-input').value;
+  const nominal = parseInt(raw, 10);
+  const { min, max, fee, markup, markup_type } = bebasProduct;
+
+  if (!nominal || nominal < min || nominal > max) {
+    previewEl.style.display = 'none';
+    bebasNominal = 0;
+    btn.disabled = true;
+    return;
+  }
+
+  bebasNominal = nominal;
+  const costPrice = nominal + (fee || 0);
+  const sellPrice = markup_type === 'percent'
+    ? costPrice + Math.round(costPrice * (markup || 0) / 100)
+    : costPrice + (markup || 0);
+  // Fee FINAL yang ditampilkan ke user = fee provider + fee/margin
+  // AustinPay, sudah dijumlah jadi satu angka (bukan dua baris terpisah).
+  const feeFinal = sellPrice - nominal;
+
+  previewEl.style.display = '';
+  previewEl.innerHTML = `
+    <div>Nominal withdraw: <strong>${formatRupiah(nominal)}</strong></div>
+    <div>Fee: <strong>${formatRupiah(feeFinal)}</strong></div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08)">Total dipotong dari saldo: <strong>${formatRupiah(sellPrice)}</strong></div>
+  `;
+  btn.disabled = false;
+}
+
+async function submitBebasWithdraw() {
+  const phone = document.getElementById('bebas-phone').value.trim();
+  const pin = document.getElementById('bebas_pin').value.trim();
+  const alertBox = document.getElementById('bebas-alert');
+  alertBox.innerHTML = '';
+
+  if (!hasPin) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Kamu belum mengatur PIN withdraw. <a href="/profile">Atur PIN di halaman Profil</a> terlebih dahulu.</div>';
+    return;
+  }
+  const isVAWallet = bebasWalletTypes[bebasWallet] === 'va';
+  if (isVAWallet) {
+    if (!/^\d{5,20}$/.test(phone)) {
+      alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Nomor Virtual Account tidak valid</div>';
+      return;
+    }
+  } else if (!/^0\d{8,14}$/.test(phone)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Nomor HP tidak valid (gunakan format 08xxxxxxxxxx)</div>';
+    return;
+  }
+  if (!bebasWallet || !bebasProduct) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Pilih e-wallet / Virtual Account tujuan terlebih dahulu</div>';
+    return;
+  }
+  if (!bebasNominal) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nominal withdraw yang valid</div>';
+    return;
+  }
+  if (!/^\d{6}$/.test(pin)) {
+    alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan PIN withdraw (6 digit)</div>';
+    return;
+  }
+
+  const btn = document.getElementById('bebas-btn');
+  btnLoading(btn, true);
+
+  const payload = { phone, wallet: bebasWallet, product_code: bebasProduct.code, pin, nominal: bebasNominal };
+  const res = await API.post('/api/instant-withdraw/create', payload);
+  btnLoading(btn, false);
+
+  // [BARU] Kosongkan field PIN setiap kali submit selesai (baik sukses
+  // maupun gagal), sinkronkan status PIN kalau ternyata belum pernah diatur
+  // — sama seperti pola di submitInstantWithdraw().
+  document.getElementById('bebas_pin').value = '';
+  if (!res.success && res.code === 'PIN_NOT_SET') {
+    checkPinStatus();
+  }
+
+  if (res.success) {
+    Toast.success(res.message);
+    alertBox.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${res.message}</div>`;
+    document.getElementById('bebas-phone').value = '';
+    document.getElementById('bebas-nominal-input').value = '';
+    document.getElementById('bebas-preview').style.display = 'none';
+    bebasWallet = '';
+    bebasProduct = null;
+    bebasNominal = 0;
+    document.querySelectorAll('#bebas-wallet-grid .method-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('bebas-nominal-wrap').style.display = 'none';
+    btn.disabled = true;
+    const me = await API.get('/api/auth/me');
+    if (me.wallet) {
+      userBalance = me.wallet.balance;
+      document.getElementById('balance-display').textContent = formatRupiah(userBalance);
+    }
+    loadHistory();
+  } else {
+    const detailHtml = res.detail
+      ? `<div style="margin-top:4px;font-size:12px;opacity:.85">Detail: ${String(res.detail).replace(/</g, '&lt;')}</div>`
+      : '';
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ${res.message}${detailHtml}</div>`;
+  }
+}
+
+</script>
+</body>
+</html>

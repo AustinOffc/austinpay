@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Buat PIN — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon"><i class="fas fa-shield-halved"></i></div>
+      <h1 id="step-title">Buat PIN Keamanan</h1>
+      <p id="step-desc">Akun kamu belum punya PIN. Buat PIN 6 digit untuk melanjutkan. PIN dipakai untuk membuka sesi setelah 24 jam tidak aktif dan untuk withdraw.</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <form id="pin-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label" id="pin-label">PIN Baru (6 digit)</label>
+        <input type="password" class="form-control" id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               placeholder="••••••" autocomplete="off"
+               style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700" required>
+        <p class="form-hint" id="pin-hint">Jangan gunakan angka berurutan atau sama semua. Jangan bagikan PIN ke siapa pun.</p>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg mt-8" id="next-btn" disabled>
+        <i class="fas fa-arrow-right"></i> <span id="next-label">Lanjut</span>
+      </button>
+      <button type="button" class="btn btn-outline btn-full mt-8" id="back-btn" style="display:none">
+        <i class="fas fa-arrow-left"></i> Ubah PIN
+      </button>
+    </form>
+
+    <div class="divider"></div>
+    <p class="text-sm text-muted" style="text-align:center">
+      <a href="#" id="logout-link" style="color:var(--primary);font-weight:600">Keluar</a>
+    </p>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script>
+  // Alur 2 langkah: (1) masukkan PIN baru, (2) masukkan lagi untuk konfirmasi.
+  const WEAK_PINS = ['000000','111111','222222','333333','444444','555555','666666','777777','888888','999999',
+                     '123456','654321','012345','543210'];
+
+  const alertBox = document.getElementById('alert-box');
+  const pinInput = document.getElementById('pin');
+  const nextBtn = document.getElementById('next-btn');
+  const backBtn = document.getElementById('back-btn');
+  let step = 1;
+  let firstPin = '';
+
+  function showAlert(type, message, icon) {
+    alertBox.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'alert alert-' + type;
+    const i = document.createElement('i');
+    i.className = 'fas ' + icon;
+    box.appendChild(i);
+    box.appendChild(document.createTextNode(' ' + message));
+    alertBox.appendChild(box);
+  }
+
+  function renderStep() {
+    pinInput.value = '';
+    nextBtn.disabled = true;
+    if (step === 1) {
+      document.getElementById('step-title').textContent = 'Buat PIN Keamanan';
+      document.getElementById('step-desc').textContent = 'Akun kamu belum punya PIN. Buat PIN 6 digit untuk melanjutkan. PIN dipakai untuk membuka sesi setelah 24 jam tidak aktif dan untuk withdraw.';
+      document.getElementById('pin-label').textContent = 'PIN Baru (6 digit)';
+      document.getElementById('pin-hint').textContent = 'Jangan gunakan angka berurutan atau sama semua. Jangan bagikan PIN ke siapa pun.';
+      document.getElementById('next-label').textContent = 'Lanjut';
+      backBtn.style.display = 'none';
+    } else {
+      document.getElementById('step-title').textContent = 'Konfirmasi PIN';
+      document.getElementById('step-desc').textContent = 'Masukkan PIN yang sama sekali lagi untuk memastikan tidak ada salah ketik.';
+      document.getElementById('pin-label').textContent = 'Ulangi PIN';
+      document.getElementById('pin-hint').textContent = 'Harus sama persis dengan PIN yang tadi kamu buat.';
+      document.getElementById('next-label').textContent = 'Simpan PIN';
+      backBtn.style.display = '';
+    }
+    pinInput.focus();
+  }
+
+  (async () => {
+    const st = await API.get('/api/auth/pin-gate');
+    if (!st.success) {
+      if (/Koneksi gagal/i.test(st.message || '')) {
+        showAlert('danger', st.message, 'fa-exclamation-circle');
+        return;
+      }
+      window.location.replace('/login');
+      return;
+    }
+    if (st.state === 'locked') { window.location.replace('/verify-pin'); return; }
+    if (st.state === 'ok') { window.location.replace(st.redirect || '/dashboard'); return; }
+    pinInput.focus();
+  })();
+
+  pinInput.addEventListener('input', () => {
+    pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+    nextBtn.disabled = pinInput.value.length !== 6;
+  });
+
+  backBtn.addEventListener('click', () => {
+    step = 1;
+    firstPin = '';
+    alertBox.innerHTML = '';
+    renderStep();
+  });
+
+  document.getElementById('pin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    alertBox.innerHTML = '';
+    const value = pinInput.value;
+    if (value.length !== 6) return;
+
+    if (step === 1) {
+      if (WEAK_PINS.includes(value)) {
+        showAlert('danger', 'PIN terlalu mudah ditebak (mis. angka berurutan/sama semua), gunakan kombinasi lain', 'fa-exclamation-circle');
+        pinInput.value = '';
+        nextBtn.disabled = true;
+        return;
+      }
+      firstPin = value;
+      step = 2;
+      renderStep();
+      return;
+    }
+
+    if (value !== firstPin) {
+      showAlert('danger', 'Konfirmasi PIN tidak cocok. Coba ketik ulang, atau tekan "Ubah PIN".', 'fa-exclamation-circle');
+      pinInput.value = '';
+      nextBtn.disabled = true;
+      pinInput.focus();
+      return;
+    }
+
+    btnLoading(nextBtn, true);
+    const res = await API.post('/api/auth/set-pin', { pin: firstPin, confirm_pin: value });
+    btnLoading(nextBtn, false);
+
+    if (res.success) {
+      showAlert('success', res.message || 'PIN berhasil dibuat.', 'fa-check-circle');
+      setTimeout(() => { window.location.href = res.redirect || '/dashboard'; }, 500);
+      return;
+    }
+    if (res.pin_gate) return;
+    if (res.redirect) { window.location.href = res.redirect; return; }
+
+    // Ditolak server (mis. format/PIN lemah): ulang dari langkah 1.
+    showAlert('danger', res.message || 'Gagal menyimpan PIN', 'fa-exclamation-circle');
+    step = 1;
+    firstPin = '';
+    renderStep();
+  });
+
+  document.getElementById('logout-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    Auth.logout();
+  });
+</script>
+</body>
+</html>

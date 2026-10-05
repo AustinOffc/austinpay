@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <script>
+    document.querySelector('#fa-local') && (function(){
+      var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+      t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* [FIX] Disamakan dengan tema hijau aplikasi (--primary di style.css),
+         sebelumnya landing page pakai palet biru sendiri yang bikin
+         warnanya beda sama dashboard/app. */
+      --blue:      #16c14c;
+      --blue-dark: #0ea043;
+      --blue-lite: #ecfdf3;
+      --ink:       #0f172a;
+      --ink-mid:   #334155;
+      --ink-soft:  #64748b;
+      --rule:      #e2e8f0;
+      --white:     #ffffff;
+      --surface:   #f8fafc;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--ink); font-size: 15px; line-height: 1.6; }
+    a { text-decoration: none; color: inherit; }
+    /* [FIX] Warna highlight saat disentuh di mobile browser sebelumnya
+       ikut default biru bawaan Chrome karena tidak pernah di-override.
+       Disamakan hijau supaya konsisten dengan tema. */
+    * { -webkit-tap-highlight-color: rgba(22,193,76,0.25); }
+
+    /* [FIX] Sebelumnya .nav sendiri yang position:sticky top:0, sedangkan
+       .topbar (banner hijau di atasnya) statis biasa. Begitu discroll
+       sedikit saja, .nav langsung nempel persis di y=0 dan menutupi
+       .topbar yang ada di atasnya (topbar jadi seolah "ketutup"/hilang
+       kecuali pas scroll posisi persis 0). Sekarang topbar+nav dibungkus
+       satu wrapper sticky di atas, sehingga keduanya selalu ikut nempel
+       bareng di paling atas, tidak ada lagi yang saling menutup. */
+    /* [FIX-2] position:sticky pada wrapper ternyata masih tidak stabil di
+       Chrome Android saat address bar collapse/expand sambil discroll —
+       nav bisa "hilang" (ke-collapse ukurannya) meski topbar tetap
+       kelihatan. position:fixed jauh lebih predictable karena tidak
+       bergantung sama sekali pada ukuran/posisi elemen sebelumnya dalam
+       flow dokumen. Body diberi padding-top otomatis lewat JS supaya
+       konten di bawah header tidak ketutup (lihat script di akhir body). */
+    .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 99; }
+
+    /* [FIX-3] AKAR MASALAH SEBENARNYA: class ".topbar" di sini ternyata
+       BENTROK NAMA dengan ".topbar" yang sudah didefinisikan di
+       /css/style.css (dipakai untuk topbar dashboard admin — sudah
+       position:fixed, left:var(--sidebar-w), z-index:50, dst). Karena
+       CSS cascade jalan per-PROPERTI (bukan per-blok penuh), properti
+       yang tidak di-override di sini (position, left, z-index, dll)
+       tetap kebawa dari style.css yang di-load lebih dulu di <head>.
+       Efeknya: banner ini diam-diam ikut jadi position:fixed dengan
+       offset kiri milik sidebar dashboard yang gak relevan sama sekali
+       di landing page ini, sehingga keluar dari alur dokumen dan
+       "nav" di baliknya ikut naik menutupi/tertutupi. Solusi permanen:
+       ganti nama class jadi unik (.promo-bar) supaya tidak pernah lagi
+       kena bocoran style dari halaman lain yang berbagi style.css sama. */
+    .promo-bar { background: var(--blue); color: #fff; font-size: 12.5px; font-weight: 500; text-align: center; padding: 7px 16px; letter-spacing: .01em; }
+
+    /* NAV */
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; background: var(--white); border-bottom: 1px solid var(--rule); }
+    .nav-brand { display: flex; align-items: center; gap: 9px; }
+    .nav-brand .icon { width: 34px; height: 34px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; }
+    .nav-brand span { font-weight: 800; font-size: 16px; color: var(--ink); }
+    .nav-cta { display: inline-flex; align-items: center; gap: 6px; background: var(--blue); color: #fff; padding: 9px 18px; border-radius: 7px; font-size: 13.5px; font-weight: 700; transition: background .15s; }
+    .nav-cta:hover { background: var(--blue-dark); }
+
+    /* HERO */
+    .hero { background: var(--white); border-bottom: 1px solid var(--rule); padding: 52px 24px 44px; text-align: center; }
+    .hero-eyebrow { display: inline-block; background: var(--blue-lite); color: var(--blue); font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 5px 14px; border-radius: 4px; margin-bottom: 22px; }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 7vw, 42px); font-weight: 400; line-height: 1.2; color: var(--ink); margin-bottom: 16px; }
+    .hero h1 em { font-style: normal; color: var(--blue); }
+    .hero-sub { font-size: 15px; color: var(--ink-soft); max-width: 440px; margin: 0 auto 32px; line-height: 1.75; }
+    .hero-actions { display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto; }
+    .btn-primary { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--blue); color: #fff; padding: 13px 20px; border-radius: 8px; font-weight: 700; font-size: 14.5px; transition: background .15s; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-ghost { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--white); color: var(--ink-mid); padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1.5px solid var(--rule); transition: border-color .15s, color .15s; }
+    .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* STATS */
+    .stats-strip { display: flex; border-bottom: 1px solid var(--rule); background: var(--surface); }
+    .stat-cell { flex: 1; padding: 20px 12px; text-align: center; border-right: 1px solid var(--rule); }
+    .stat-cell:last-child { border-right: none; }
+    .stat-num { font-size: 22px; font-weight: 800; color: var(--blue); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 11px; color: var(--ink-soft); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* SECTION HEADER */
+    .section-head { padding: 36px 24px 20px; border-bottom: 1px solid var(--rule); }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+    .section-head h2 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; color: var(--ink); }
+
+    /* FEATURE TABLE */
+    .feature-table { width: 100%; border-collapse: collapse; }
+    .feature-table tr { border-bottom: 1px solid var(--rule); display: flex; align-items: flex-start; padding: 18px 24px; gap: 16px; transition: background .12s; }
+    .feature-table tr:hover { background: var(--blue-lite); }
+    .feat-icon { width: 38px; height: 38px; flex-shrink: 0; background: var(--blue-lite); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--blue); font-size: 15px; margin-top: 2px; }
+    .feat-title { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .feat-desc { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+
+    /* FAQ */
+    .faq-wrap { padding: 0 0 8px; }
+    .faq-item { border-bottom: 1px solid var(--rule); }
+    .faq-q { width: 100%; background: none; border: none; padding: 18px 24px; text-align: left; font-family: 'Inter', sans-serif; font-size: 14.5px; font-weight: 600; color: var(--ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: color .12s; }
+    .faq-q:hover { color: var(--blue); }
+    .faq-q .arrow { font-size: 11px; color: var(--ink-soft); transition: transform .2s; flex-shrink: 0; }
+    .faq-item.open .faq-q { color: var(--blue); }
+    .faq-item.open .arrow { transform: rotate(180deg); color: var(--blue); }
+    .faq-a { display: none; padding: 0 24px 18px 40px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.7; border-left: 3px solid var(--blue); margin: 0 24px 0 40px; }
+    .faq-item.open .faq-a { display: block; }
+
+    /* CTA BOTTOM */
+    .cta-bottom { background: var(--blue); padding: 44px 24px; text-align: center; }
+    .cta-bottom h3 { font-family: 'DM Serif Display', serif; font-size: 26px; color: #fff; font-weight: 400; margin-bottom: 10px; }
+    .cta-bottom p { font-size: 14px; color: rgba(255,255,255,.75); margin-bottom: 24px; line-height: 1.6; }
+    .btn-white { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--blue); padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14.5px; transition: opacity .15s; }
+    .btn-white:hover { opacity: .9; }
+
+    /* FOOTER */
+    .footer { background: var(--surface); border-top: 1px solid var(--rule); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .footer-brand { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .footer-copy { font-size: 12px; color: var(--ink-soft); }
+  </style>
+</head>
+<body>
+
+<div class="site-header">
+<div class="promo-bar">Platform QRIS terpercaya untuk bisnis digital kamu</div>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <img id="nav-logo" src="/uploads/logo_1782620605180.jpg" style="width:34px;height:34px;border-radius:8px;object-fit:cover;">
+    <span id="nav-app-name">Austin Pay</span>
+  </div>
+  <a href="/login" class="nav-cta">Daftar / Masuk <i class="fas fa-arrow-right"></i></a>
+</nav>
+</div>
+
+<section class="hero">
+  <div class="hero-eyebrow">AustinPay &nbsp;·&nbsp; QRIS &nbsp;·&nbsp; Indonesia</div>
+  <h1>Terima Pembayaran Digital<br>dengan <em>Satu Platform</em></h1>
+  <p class="hero-sub">Kelola deposit, penarikan, dan laporan transaksi bisnis kamu dalam satu dashboard yang bersih dan terstruktur.</p>
+  <div class="hero-actions">
+    <a href="/register" class="btn-primary"><i class="fas fa-user-plus"></i> Buat Akun Sekarang</a>
+    <a href="/api-docs" class="btn-ghost"><i class="fas fa-book-open"></i> Lihat Dokumentasi API</a>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stat-cell">
+    <div class="stat-num">QRIS</div>
+    <div class="stat-label">Metode Deposit</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">Rp 0</div>
+    <div class="stat-label">Biaya Daftar</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">Sistem Aktif</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">0%</div>
+    <div class="stat-label">Fee Deposit &amp; Withdraw</div>
+  </div>
+</div>
+
+<div class="section-head">
+  <div class="section-label">Layanan</div>
+  <h2>Apa yang bisa kamu lakukan</h2>
+</div>
+<table class="feature-table">
+  <tr>
+    <td class="feat-icon"><i class="fas fa-qrcode"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Deposit via QRIS Dinamis</div>
+      <div class="feat-desc">Top up saldo dari Dana, GoPay, OVO, ShopeePay, dan semua m-banking. QRIS dibuat otomatis per transaksi.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="feat-icon"><i class="fas fa-money-bill-transfer"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Penarikan ke Bank & E-Wallet</div>
+      <div class="feat-desc">Ajukan withdraw ke rekening BCA, Mandiri, BRI, BNI, atau e-wallet kapan saja langsung dari dashboard.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="feat-icon"><i class="fas fa-chart-bar"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Laporan & Riwayat Transaksi</div>
+      <div class="feat-desc">Pantau semua aktivitas keuangan dengan grafik harian, filter status, dan ekspor data ke CSV.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="feat-icon"><i class="fab fa-telegram"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Notifikasi Telegram Otomatis</div>
+      <div class="feat-desc">Setiap transaksi masuk dan keluar langsung dikirim ke Telegram kamu. Tidak ada aktivitas yang terlewat.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="feat-icon"><i class="fas fa-key"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Akses API dengan API Key</div>
+      <div class="feat-desc">Integrasikan sistem kamu menggunakan REST API yang terdokumentasi lengkap dengan autentikasi API Key.</div>
+    </td>
+  </tr>
+  <tr>
+    <td class="feat-icon"><i class="fas fa-shield-halved"></i></td>
+    <td class="feat-body">
+      <div class="feat-title">Keamanan Berlapis</div>
+      <div class="feat-desc">JWT token, enkripsi bcrypt, rate limiting, XSS guard, IP whitelist, dan log aktivitas lengkap di setiap akun.</div>
+    </td>
+  </tr>
+</table>
+
+<div class="section-head">
+  <div class="section-label">FAQ</div>
+  <h2>Pertanyaan yang sering ditanyakan</h2>
+</div>
+<div class="faq-wrap">
+  <div class="faq-item">
+    <button class="faq-q">Apa itu Austin Pay? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Austin Pay adalah platform yang memungkinkan bisnis atau aplikasi menerima pembayaran digital melalui QRIS dari berbagai e-wallet dan bank secara otomatis, cepat, dan aman.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q">Apakah ada biaya untuk mendaftar? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Tidak ada biaya pendaftaran maupun berlangganan. Biaya hanya dikenakan pada setiap transaksi yang berhasil, dengan rincian yang bisa kamu lihat di dashboard.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q">Berapa lama saldo masuk setelah pembayaran? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Saldo masuk otomatis dalam hitungan detik setelah pembayaran QRIS dikonfirmasi. Tidak perlu konfirmasi manual dari admin.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q">Apakah ada biaya penarikan dana? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Ada biaya admin untuk setiap penarikan. Nominal biaya dapat dilihat langsung di halaman withdraw setelah kamu login ke dashboard.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q">Berapa lama proses pencairan dana? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Pencairan diproses oleh admin dalam 1×24 jam kerja. Kamu akan menerima notifikasi Telegram begitu penarikan disetujui atau diproses.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q">Apakah tersedia dokumentasi API? <span class="arrow"><i class="fas fa-chevron-down"></i></span></button>
+    <div class="faq-a">Ya. Austin Pay menyediakan dokumentasi REST API lengkap dengan contoh request dan response. Bisa diakses di halaman Panduan API tanpa perlu login.</div>
+  </div>
+</div>
+
+<div class="cta-bottom">
+  <h3>Siap mulai menerima pembayaran?</h3>
+  <p>Daftar gratis sekarang dan mulai kelola transaksi bisnis kamu dalam hitungan menit.</p>
+  <a href="/register" class="btn-white"><i class="fas fa-user-plus"></i> Buat Akun Sekarang</a>
+</div>
+
+<footer class="footer">
+  <div class="footer-brand" id="footer-app-name">AustinPay</div>
+  <div class="footer-copy">&copy; 2026 AustinPay. Semua hak dilindungi.</div>
+</footer>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script>
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  // [FIX] .site-header sekarang position:fixed (lihat catatan FIX-2 di
+  // <style>), jadi otomatis keluar dari document flow dan tidak lagi
+  // "mendorong" konten di bawahnya turun sendiri. Body diberi padding-top
+  // = tinggi header saat ini, dihitung ulang tiap kali ukurannya berubah
+  // (mis. topbar wrap jadi 2 baris di layar sempit, atau nav-app-name
+  // ganti panjang teks dari fetch branding di bawah) supaya konten tidak
+  // pernah ketutup header, di device manapun.
+  function syncHeaderSpacing() {
+    const header = document.querySelector('.site-header');
+    if (header) document.body.style.paddingTop = header.offsetHeight + 'px';
+  }
+  syncHeaderSpacing();
+  window.addEventListener('resize', syncHeaderSpacing);
+  window.addEventListener('orientationchange', syncHeaderSpacing);
+  if (document.fonts?.ready) document.fonts.ready.then(syncHeaderSpacing);
+
+  fetch(apiUrl('/api/public/branding')).then(r => r.json()).then(d => {
+    if (d.success && d.app_name) {
+      document.getElementById('nav-app-name').textContent = d.app_name;
+      document.getElementById('footer-app-name').textContent = d.app_name;
+      document.title = d.app_name;
+    }
+    if (d.success && d.app_logo) {
+      document.getElementById('nav-logo').src = d.app_logo;
+    }
+  }).catch(() => {}).finally(syncHeaderSpacing);
+</script>
+</body>
+</html>

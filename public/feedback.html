@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Feedback — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+  <style>
+    .fb-hero {
+      border-radius: var(--radius, 14px);
+      padding: 28px 22px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #0e9f45 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .fb-hero::after {
+      content: '';
+      position: absolute; right: -30px; top: -30px;
+      width: 140px; height: 140px; border-radius: 50%;
+      background: rgba(255,255,255,.12);
+    }
+    .fb-hero h2 { font-size: 19px; font-weight: 800; margin-bottom: 6px; display:flex; align-items:center; gap:8px; }
+    .fb-hero p { font-size: 13px; opacity: .92; line-height: 1.5; max-width: 460px; }
+
+    .fb-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 4px; }
+    @media (max-width: 480px) { .fb-type-grid { grid-template-columns: 1fr; } }
+    .fb-type-option { display: none; }
+    .fb-type-label {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 14px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .15s, background .15s;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .fb-type-label i { font-size: 20px; }
+    .fb-type-option:checked + .fb-type-label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .fb-anon-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      margin-bottom: 16px;
+    }
+    .fb-anon-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0; cursor: pointer; }
+    .fb-anon-row label { font-size: 13px; cursor: pointer; }
+    .fb-anon-row .fb-anon-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .fb-charcount { text-align: right; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    .fb-history-item {
+      display: flex; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .fb-history-item:last-child { border-bottom: none; }
+    .fb-history-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg); color: var(--text-muted); flex-shrink: 0;
+    }
+    .fb-history-body { flex: 1; min-width: 0; }
+    .fb-history-msg { font-size: 13px; color: var(--text); word-break: break-word; }
+    .fb-history-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item active" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Feedback</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content" style="max-width:640px">
+      <div class="fb-hero">
+        <h2><i class="fas fa-comment-dots"></i> Punya masukan buat AustinPay?</h2>
+        <p>Ketemu bug, punya ide fitur, atau cuma mau curhat soal pengalaman pakai AustinPay? Tulis di sini, langsung masuk ke inbox admin.</p>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-body">
+          <div id="fb-alert"></div>
+
+          <form id="fb-form">
+            <div class="form-group">
+              <label class="form-label">Jenis Pesan</label>
+              <div class="fb-type-grid">
+                <input type="radio" name="fb-type" id="fb-type-masukan" class="fb-type-option" value="masukan" checked>
+                <label for="fb-type-masukan" class="fb-type-label"><i class="fas fa-lightbulb"></i> Masukan</label>
+
+                <input type="radio" name="fb-type" id="fb-type-bug" class="fb-type-option" value="bug">
+                <label for="fb-type-bug" class="fb-type-label"><i class="fas fa-bug"></i> Laporan Bug</label>
+
+                <input type="radio" name="fb-type" id="fb-type-lainnya" class="fb-type-option" value="lainnya">
+                <label for="fb-type-lainnya" class="fb-type-label"><i class="fas fa-ellipsis"></i> Lainnya</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Subjek <span class="text-muted" style="font-weight:400">(opsional)</span></label>
+              <input type="text" class="form-control" id="fb-subject" maxlength="150" placeholder="Contoh: QRIS gagal generate">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pesan</label>
+              <textarea class="form-control" id="fb-message" rows="6" maxlength="2000" placeholder="Ceritain detailnya di sini..." required></textarea>
+              <div class="fb-charcount"><span id="fb-charcount">0</span>/2000</div>
+            </div>
+
+            <div class="fb-anon-row">
+              <input type="checkbox" id="fb-anonymous">
+              <div>
+                <label for="fb-anonymous">Kirim sebagai anonim</label>
+                <div class="fb-anon-desc">Nama kamu tidak akan ditampilkan ke admin.</div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="fb-submit-btn">
+              <i class="fas fa-paper-plane"></i> Kirim Pesan
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script>
+async function init() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+}
+
+const messageEl = document.getElementById('fb-message');
+const charCountEl = document.getElementById('fb-charcount');
+messageEl.addEventListener('input', () => {
+  charCountEl.textContent = messageEl.value.length;
+});
+
+document.getElementById('fb-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('fb-submit-btn');
+  const alertBox = document.getElementById('fb-alert');
+  alertBox.innerHTML = '';
+
+  const type = document.querySelector('input[name="fb-type"]:checked')?.value || 'masukan';
+  const subject = document.getElementById('fb-subject').value.trim();
+  const message = messageEl.value.trim();
+  const isAnonymous = document.getElementById('fb-anonymous').checked;
+
+  if (!message) {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i><span>Pesan tidak boleh kosong</span></div>`;
+    return;
+  }
+
+  btnLoading(btn, true);
+  const res = await API.post('/api/feedback', {
+    type, subject, message,
+    is_anonymous: isAnonymous,
+    page: window.location.pathname,
+  });
+  btnLoading(btn, false);
+
+  if (res.success) {
+    Toast.success(res.message || 'Pesan terkirim!');
+    alertBox.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i><span>${res.message || 'Pesan terkirim!'}</span></div>`;
+    document.getElementById('fb-form').reset();
+    charCountEl.textContent = '0';
+  } else {
+    alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i><span>${res.message || 'Gagal mengirim pesan'}</span></div>`;
+    Toast.error(res.message || 'Gagal mengirim pesan');
+  }
+});
+
+init();
+</script>
+</body>
+</html>

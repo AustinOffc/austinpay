@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Notifikasi — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+  <script>
+    document.querySelector('#fa-local') && (function(){
+      var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+      t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+    })();
+  </script>
+  <style>
+    .nt-status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .nt-status-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;
+      border-radius: 999px; font-size: 13px; font-weight: 700;
+    }
+    .nt-status-pill.on { background: var(--success-light); color: #065f46; }
+    .nt-status-pill.off { background: var(--border); color: var(--text-muted); }
+    .nt-status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .nt-event-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .nt-event-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary); }
+    .nt-event-item i { width: 18px; text-align: center; color: var(--primary); flex-shrink: 0; }
+    .nt-steps { display: flex; flex-direction: column; gap: 8px; margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-secondary); }
+    .nt-steps li { line-height: 1.6; }
+    .nt-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item active" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Notifikasi</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <div class="user-avatar" data-user-avatar style="cursor:pointer" onclick="location.href='/profile'"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="nt-status-row">
+        <span class="nt-status-pill off" id="nt-status-pill"><span class="nt-status-dot"></span> Memuat...</span>
+      </div>
+
+      <div class="alert alert-info mb-16">
+        <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+        <span style="min-width:0">Hubungkan akun Telegram pribadi kamu supaya dapat notifikasi <b>real-time</b> untuk setiap aktivitas penting di akun kamu: login/perangkat baru, ganti password, atur/ganti/reset PIN, API key baru, deposit sukses, dan withdraw disetujui/ditolak.</span>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-header"><span class="card-title"><i class="fas fa-paper-plane" style="color:var(--primary)"></i> Chat ID Telegram</span></div>
+        <div class="card-body">
+          <div id="nt-config-alert"></div>
+
+          <div class="form-group">
+            <label class="form-label">Chat ID Telegram <span style="color:var(--text-muted);font-weight:400">(Opsional)</span></label>
+            <input type="text" class="form-control" id="nt-chat-id" inputmode="numeric" placeholder="Contoh: 7123786809">
+            <div class="form-hint">Angka numerik ID Telegram pribadi kamu — lihat cara mendapatkannya di bawah.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">PIN</label>
+            <input type="password" class="form-control" id="nt-pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Masukkan PIN 6 digit">
+            <div id="nt-pin-missing-hint" style="display:none" class="alert alert-warning mt-8">
+              <i class="fas fa-triangle-exclamation"></i>
+              <span>Kamu belum mengatur PIN. Atur PIN 6 digit dulu di halaman <a href="/profile">Profil</a> sebelum bisa mengaktifkan notifikasi Telegram.</span>
+            </div>
+          </div>
+
+          <div class="nt-actions">
+            <button class="btn btn-primary" id="nt-save-btn"><i class="fas fa-save"></i> Simpan Perubahan</button>
+            <button class="btn btn-secondary" id="nt-reset-btn"><i class="fas fa-rotate-left"></i> Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-header"><span class="card-title"><i class="fas fa-list-check" style="color:var(--success)"></i> Yang Akan Dinotifikasi</span></div>
+        <div class="card-body">
+          <div class="nt-event-list">
+            <div class="nt-event-item"><i class="fas fa-mobile-screen"></i> Login baru ke akun kamu</div>
+            <div class="nt-event-item"><i class="fas fa-key"></i> Password diubah</div>
+            <div class="nt-event-item"><i class="fas fa-shield-halved"></i> PIN diatur, diganti, atau direset admin</div>
+            <div class="nt-event-item"><i class="fas fa-code"></i> API key baru dibuat</div>
+            <div class="nt-event-item"><i class="fas fa-circle-check"></i> Deposit berhasil masuk</div>
+            <div class="nt-event-item"><i class="fas fa-money-bill-transfer"></i> Withdraw disetujui atau ditolak</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title"><i class="fas fa-circle-info" style="color:var(--warning)"></i> Cara Mendapatkan Chat ID</span></div>
+        <div class="card-body">
+          <ol class="nt-steps">
+            <li>Buka Telegram, lalu cari &amp; kirim pesan <code>/start</code> ke bot resmi kami: <b id="nt-bot-username">memuat...</b>. Ini wajib supaya bot bisa mengirim pesan ke chat pribadi kamu.
+              <a href="#" class="btn btn-secondary btn-sm mt-8" id="nt-bot-open-btn" target="_blank" rel="noopener" style="display:none;width:fit-content"><i class="fab fa-telegram"></i> Buka Bot &amp; Start</a>
+            </li>
+            <li>Cari tahu Chat ID numerik kamu — cara termudah, kirim pesan apa saja ke bot pihak ketiga seperti <code>@userinfobot</code>, lalu salin angka ID yang dibalas.</li>
+            <li>Tempel angka ID tersebut di kolom "Chat ID Telegram" di atas, masukkan PIN kamu, lalu klik "Simpan Perubahan". Sistem akan langsung mengirim pesan konfirmasi ke Telegram kamu.</li>
+          </ol>
+          <div class="alert alert-warning mt-16" id="nt-bot-unconfigured" style="display:none">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>Bot Telegram belum dikonfigurasi oleh admin — fitur ini belum bisa dipakai untuk sementara.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script src="/js/notification-settings.js"></script>
+</body>
+</html>

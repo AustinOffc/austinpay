@@ -1,0 +1,136 @@
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-w: 272px;
+    --header-h: 84px;
+    --desk-gap: 16px;
+    --desk-offset: calc(var(--sidebar-w) + (var(--desk-gap) * 2));
+  }
+
+  html body .dock,
+  html body .sidebar-overlay,
+  html body .sidebar-toggle { display: none !important; }
+
+  html body .app-layout { display: block; }
+
+  html body .sidebar {
+    top: var(--desk-gap);
+    bottom: var(--desk-gap);
+    left: var(--desk-gap);
+    width: var(--sidebar-w);
+    transform: none !important;
+    transition: none;
+    border-radius: 30px;
+    z-index: 70;
+  }
+  html body .sidebar-header { padding: 24px 22px 8px; }
+  html body .sidebar-nav { padding: 10px 14px; gap: 4px; }
+  html body .nav-item { padding: 6px 12px 6px 6px; font-size: 13.5px; }
+  html body .nav-item .nav-icon { width: 34px; height: 34px; font-size: 13px; }
+
+  html body .main-content {
+    margin-left: var(--desk-offset) !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    width: auto;
+    max-width: none;
+    padding-bottom: 48px;
+  }
+
+  html body .topbar {
+    left: var(--desk-offset) !important;
+    right: 0 !important;
+    transform: none;
+    width: auto;
+    max-width: none;
+    padding-left: 32px;
+    padding-right: 32px;
+    gap: 16px;
+  }
+  html body .topbar-title { font-size: 26px; flex: 1; }
+  html body .topbar-title small { font-size: 13.5px; }
+  html body .topbar-actions { gap: 10px; }
+  html body .btn-icon { width: 46px; height: 46px; font-size: 17px; }
+  html body .topbar-actions .user-avatar { width: 46px !important; height: 46px !important; }
+
+  html body .page-content {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding-left: 32px;
+    padding-right: 32px;
+    padding-top: calc(var(--header-h) + var(--safe-top, 0px) + 8px);
+  }
+  html body:has(.admin-sidebar) .page-content { max-width: none; }
+
+  html body .wallet-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 480px);
+    column-gap: 40px;
+    align-items: center;
+    padding: 28px 32px;
+    border-radius: 34px;
+  }
+  html body .wallet-hero > .wallet-top,
+  html body .wallet-hero > .wallet-label,
+  html body .wallet-hero > .wallet-balance { grid-column: 1; }
+  html body .wallet-hero > .wallet-actions { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  html body .wallet-hero .wallet-balance { font-size: clamp(40px, 4.2vw, 60px); margin: 6px 0 0; }
+  html body .wallet-hero .wallet-actions .btn { height: 92px; font-size: 13px; }
+  html body .wallet-hero .wallet-actions .btn i { font-size: 22px; }
+
+  html body .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  html body .stats-grid:has(> .stat-card:nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html body .stats-grid:has(> .stat-card:nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html body .stats-grid .stat-card { padding: 16px 20px; }
+  html body .stat-value { font-size: 20px; }
+
+  html body #dashboard-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) !important;
+    gap: 20px !important;
+    align-items: start;
+  }
+
+  html body .promo-carousel { margin-bottom: 18px; }
+  html body .promo-carousel .promo-slide { aspect-ratio: 3.4 / 1; }
+
+  html body .grid-2 { grid-template-columns: 1fr 1fr; }
+  html body #profile-grid { grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+
+  html body [style*="max-width:560px"] { max-width: 760px !important; }
+  html body [style*="max-width:640px"] { max-width: 860px !important; }
+  html body [style*="max-width:720px"] { max-width: 920px !important; }
+  html body .api-page { max-width: 960px; }
+
+  html body .card-header { padding: 20px 24px 8px; }
+  html body .card-body { padding: 10px 24px 24px; }
+  html body .table th,
+  html body .table td { padding: 14px 18px; font-size: 13.5px; }
+
+  html body .toast-container { top: 24px; right: 32px; }
+
+  html body .chat-fab { bottom: 28px; right: 32px; width: 58px; height: 58px; }
+  html body .chat-window {
+    bottom: 100px;
+    right: 32px;
+    width: 390px;
+    height: 560px;
+    max-height: calc(100vh - 124px);
+    max-height: calc(100dvh - 124px);
+  }
+
+  html body .docs-container { max-width: 1040px; }
+  html body .endpoint { border-radius: 24px; }
+
+  html body.has-nav-labels .sidebar-nav { gap: 3px; }
+}
+
+@media (min-width: 1024px) and (max-height: 760px) {
+  html body .nav-item { padding-top: 4px; padding-bottom: 4px; }
+  html body .nav-item .nav-icon { width: 30px; height: 30px; }
+  html body .sidebar-header { padding-top: 16px; }
+}
+
+@media (min-width: 1600px) {
+  html body .page-content { max-width: 1480px; }
+  html body .wallet-hero { grid-template-columns: minmax(0, 1fr) 520px; }
+}

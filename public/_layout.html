@@ -1,0 +1,69 @@
+<!-- Reference snippet — sidebar + topbar structure (FA icons) -->
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+        <span>Austin Pay</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard">
+        <span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard
+      </div>
+      <div class="nav-item" data-href="/deposit">
+        <span class="nav-icon"><i class="fas fa-download"></i></span> Deposit
+      </div>
+      <div class="nav-item" data-href="/withdraw">
+        <span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw
+      </div>
+      <div class="nav-item" data-href="/history">
+        <span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat
+      </div>
+      <div class="nav-item" data-href="/overview">
+        <span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview
+      </div>
+      <div class="nav-item" data-href="/leaderboard">
+        <span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard
+      </div>
+      <div class="nav-item" data-href="/profile">
+        <span class="nav-icon"><i class="fas fa-user"></i></span> Profil
+      </div>
+      <div class="nav-item" data-href="/feedback">
+        <span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback
+      </div>
+      <div class="nav-item" data-href="/penghargaan">
+        <span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>Loading...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle" title="Toggle tema"><i class="fas fa-moon"></i></button>
+        <div class="user-avatar" data-user-avatar style="width:36px;height:36px;cursor:pointer" onclick="window.location='/profile'"></div>
+      </div>
+    </header>
+    <!-- PAGE CONTENT GOES HERE -->
+  </div>
+</div>

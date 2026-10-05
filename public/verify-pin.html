@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Verifikasi PIN — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon"><i class="fas fa-lock"></i></div>
+      <h1>Verifikasi PIN</h1>
+      <p>Masukkan PIN Keamanan untuk melanjutkan.</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <form id="pin-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" value="" readonly disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN Keamanan</label>
+        <input type="password" class="form-control" id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               placeholder="••••••" autocomplete="off"
+               style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700" required>
+        <p class="form-hint" style="text-align:right"><a href="#" id="forgot-pin-link" style="color:var(--primary);font-weight:600">Lupa PIN?</a></p>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg mt-8" id="verify-btn" disabled>
+        <i class="fas fa-unlock"></i> Verif
+      </button>
+    </form>
+
+    <div id="forgot-section" style="display:none">
+      <div class="divider"></div>
+      <p class="text-sm text-muted">Kode reset PIN akan dikirim ke email akun kamu.</p>
+      <button type="button" class="btn btn-outline btn-full" id="forgot-send-btn">
+        <i class="fas fa-envelope"></i> Kirim kode ke email
+      </button>
+      <div id="forgot-confirm" style="display:none">
+        <div class="form-group mt-8">
+          <label class="form-label">Kode dari email</label>
+          <input type="text" class="form-control" id="forgot-code" inputmode="numeric" maxlength="6" placeholder="6 digit kode" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">PIN baru</label>
+          <input type="password" class="form-control" id="forgot-new" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Konfirmasi PIN baru</label>
+          <input type="password" class="form-control" id="forgot-confirm-pin" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off">
+        </div>
+        <button type="button" class="btn btn-primary btn-full" id="forgot-reset-btn">
+          <i class="fas fa-key"></i> Reset PIN
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <p class="text-sm text-muted" style="text-align:center">
+      Bukan akun kamu?
+      <a href="#" id="logout-link" style="color:var(--primary);font-weight:600">Keluar</a>
+    </p>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script>
+  const alertBox = document.getElementById('alert-box');
+  const pinInput = document.getElementById('pin');
+  const verifyBtn = document.getElementById('verify-btn');
+
+  function showAlert(type, message, icon) {
+    alertBox.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'alert alert-' + type;
+    const i = document.createElement('i');
+    i.className = 'fas ' + icon;
+    box.appendChild(i);
+    box.appendChild(document.createTextNode(' ' + message));
+    alertBox.appendChild(box);
+  }
+
+  (async () => {
+    const st = await API.get('/api/auth/pin-gate');
+    if (!st.success) {
+      if (/Koneksi gagal/i.test(st.message || '')) {
+        showAlert('danger', st.message, 'fa-exclamation-circle');
+        return;
+      }
+      window.location.replace('/login');
+      return;
+    }
+    if (st.state === 'setup') { window.location.replace('/set-pin'); return; }
+    if (st.state === 'ok') { window.location.replace(st.redirect || '/dashboard'); return; }
+
+    document.getElementById('username').value = st.username || '';
+    pinInput.focus();
+  })();
+
+  pinInput.addEventListener('input', () => {
+    pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+    verifyBtn.disabled = pinInput.value.length !== 6;
+  });
+
+  document.getElementById('pin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    alertBox.innerHTML = '';
+    if (pinInput.value.length !== 6) return;
+
+    btnLoading(verifyBtn, true);
+    const res = await API.post('/api/auth/verify-pin', { pin: pinInput.value });
+    btnLoading(verifyBtn, false);
+
+    if (res.success) {
+      showAlert('success', res.message || 'PIN benar.', 'fa-check-circle');
+      setTimeout(() => { window.location.href = res.redirect || '/dashboard'; }, 400);
+      return;
+    }
+    if (res.pin_gate) return;
+
+    showAlert('danger', res.message || 'PIN salah', 'fa-exclamation-circle');
+    pinInput.value = '';
+    verifyBtn.disabled = true;
+    pinInput.focus();
+  });
+
+  // ── Lupa PIN (OTP email via Resend) ──
+  const forgotSection = document.getElementById('forgot-section');
+  const forgotConfirm = document.getElementById('forgot-confirm');
+  ['forgot-code', 'forgot-new', 'forgot-confirm-pin'].forEach((id) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => { el.value = el.value.replace(/\D/g, '').slice(0, 6); });
+  });
+
+  document.getElementById('forgot-pin-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    forgotSection.style.display = forgotSection.style.display === 'none' ? '' : 'none';
+  });
+
+  document.getElementById('forgot-send-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('forgot-send-btn');
+    alertBox.innerHTML = '';
+    btnLoading(btn, true);
+    const res = await API.post('/api/auth/pin-forgot/send', {});
+    btnLoading(btn, false);
+    if (res.pin_gate) return;
+    if (res.success) {
+      showAlert('success', res.message, 'fa-check-circle');
+      forgotConfirm.style.display = '';
+      document.getElementById('forgot-code').focus();
+    } else {
+      let msg = res.message || 'Gagal mengirim kode';
+      if (res.code === 'EMAIL_NOT_VERIFIED') msg = 'Email akun kamu belum terverifikasi, jadi PIN tidak bisa direset lewat email. Silakan hubungi Admin.';
+      showAlert(res.code === 'EMAIL_NOT_VERIFIED' ? 'warning' : 'danger', msg, 'fa-exclamation-circle');
+    }
+  });
+
+  document.getElementById('forgot-reset-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('forgot-reset-btn');
+    const code = document.getElementById('forgot-code').value;
+    const new_pin = document.getElementById('forgot-new').value;
+    const confirm_pin = document.getElementById('forgot-confirm-pin').value;
+    alertBox.innerHTML = '';
+    if (!/^\d{6}$/.test(code)) return showAlert('warning', 'Kode email harus 6 digit angka', 'fa-exclamation-circle');
+    if (!/^\d{6}$/.test(new_pin)) return showAlert('warning', 'PIN baru harus 6 digit angka', 'fa-exclamation-circle');
+    if (new_pin !== confirm_pin) return showAlert('danger', 'Konfirmasi PIN baru tidak cocok', 'fa-exclamation-circle');
+
+    btnLoading(btn, true);
+    const res = await API.post('/api/auth/pin-forgot/reset', { code, new_pin, confirm_pin });
+    btnLoading(btn, false);
+    if (res.pin_gate) return;
+    if (res.success) {
+      ['forgot-code', 'forgot-new', 'forgot-confirm-pin'].forEach((id) => { document.getElementById(id).value = ''; });
+      forgotConfirm.style.display = 'none';
+      forgotSection.style.display = 'none';
+      showAlert('success', 'PIN berhasil direset. Silakan masukkan PIN baru kamu.', 'fa-check-circle');
+      pinInput.focus();
+    } else {
+      showAlert('danger', res.message || 'Reset PIN gagal', 'fa-exclamation-circle');
+    }
+  });
+
+  document.getElementById('logout-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    Auth.logout();
+  });
+</script>
+</body>
+</html>

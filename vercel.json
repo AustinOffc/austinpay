@@ -1,0 +1,235 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/register",
+      "destination": "/register.html"
+    },
+    {
+      "source": "/verify-email",
+      "destination": "/verify-email.html"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/forgot-password.html"
+    },
+    {
+      "source": "/verify-pin",
+      "destination": "/verify-pin.html"
+    },
+    {
+      "source": "/set-pin",
+      "destination": "/set-pin.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    },
+    {
+      "source": "/saweria",
+      "destination": "/saweria.html"
+    },
+    {
+      "source": "/cekmutasi",
+      "destination": "/cekmutasi.html"
+    },
+    {
+      "source": "/riwayat-mutasi",
+      "destination": "/riwayat-mutasi.html"
+    },
+    {
+      "source": "/deposit",
+      "destination": "/deposit.html"
+    },
+    {
+      "source": "/withdraw",
+      "destination": "/withdraw.html"
+    },
+    {
+      "source": "/history",
+      "destination": "/history.html"
+    },
+    {
+      "source": "/overview",
+      "destination": "/overview.html"
+    },
+    {
+      "source": "/leaderboard",
+      "destination": "/leaderboard.html"
+    },
+    {
+      "source": "/profile",
+      "destination": "/profile.html"
+    },
+    {
+      "source": "/webhook",
+      "destination": "/webhook.html"
+    },
+    {
+      "source": "/api-settings",
+      "destination": "/api-settings.html"
+    },
+    {
+      "source": "/notification",
+      "destination": "/notification.html"
+    },
+    {
+      "source": "/download-apk",
+      "destination": "/download-apk.html"
+    },
+    {
+      "source": "/feedback",
+      "destination": "/feedback.html"
+    },
+    {
+      "source": "/penghargaan",
+      "destination": "/penghargaan.html"
+    },
+    {
+      "source": "/api-docs",
+      "destination": "/api-docs.html"
+    },
+    {
+      "source": "/austinganteng",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/users",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/deposits",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/withdraws",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/transactions",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/settings",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/logs",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/api-keys",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/ip-whitelist",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/notifications",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/feedback",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/saweria",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/austinganteng/tickets",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/fa/:path*",
+      "destination": "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://api.austinstore.id/uploads/:path*"
+    },
+    {
+      "source": "/download/apk",
+      "destination": "https://api.austinstore.id/download/apk"
+    },
+    {
+      "source": "/not-me/:token",
+      "destination": "https://api.austinstore.id/not-me/:token"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.austinstore.id/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://api.austinstore.id/socket.io/:path*"
+    },
+    {
+      "source": "/((?!.*\\.).*)",
+      "destination": "/404.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=604800, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(css|js)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=60"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
+}

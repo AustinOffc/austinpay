@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Overview — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+  <script>
+    document.querySelector('#fa-local') && (function(){
+      var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+      t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+    })();
+  </script>
+  <style>
+    /* ── Scoped ke halaman Overview saja ─────────────────────── */
+    .ov-hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+    .ov-ring-wrap { position: relative; width: 128px; height: 128px; flex-shrink: 0; }
+    .ov-ring {
+      width: 128px; height: 128px; border-radius: 50%;
+      background: conic-gradient(#fff var(--ov-deg, 0deg), rgba(255,255,255,.25) 0deg);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.6s ease;
+    }
+    .ov-ring-inner {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--primary-dark);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .ov-ring-inner .ov-ring-value { font-size: 26px; font-weight: 800; line-height: 1; }
+    .ov-ring-inner .ov-ring-label { font-size: 10px; opacity: .85; margin-top: 4px; text-align: center; }
+    .ov-hero-info { flex: 1; min-width: 220px; }
+    .ov-hero-title { font-size: 13px; opacity: .85; text-transform: uppercase; letter-spacing: .04em; }
+    .ov-hero-desc { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .ov-hero-sub { font-size: 13px; opacity: .9; margin-top: 6px; }
+    .ov-hero-badges { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .ov-hero-badge {
+      background: rgba(255,255,255,.16); border-radius: 999px;
+      padding: 6px 14px; font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ov-section-title {
+      font-size: 14px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .03em;
+      margin: 28px 0 12px;
+    }
+    .ov-section-title:first-of-type { margin-top: 0; }
+    .ov-bar-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+    }
+    .ov-bar-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .ov-bar-row-label { font-size: 13px; font-weight: 600; }
+    .ov-bar-row-value { font-size: 13px; font-weight: 700; }
+    .ov-bar-track { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .ov-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+    .ov-bar-card + .ov-bar-card { margin-top: 14px; }
+    .ov-note {
+      font-size: 12px; color: var(--text-muted); margin-top: 18px;
+      display: flex; gap: 8px; align-items: flex-start;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+        <span>Austin Pay</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item active" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Overview</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <div class="user-avatar" data-user-avatar style="cursor:pointer" onclick="location.href='/profile'"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Hero: Skor Kesehatan Sistem -->
+      <div class="ov-hero">
+        <div class="ov-ring-wrap">
+          <div class="ov-ring" id="ov-health-ring">
+            <div class="ov-ring-inner">
+              <span class="ov-ring-value" id="ov-health-value">0%</span>
+              <span class="ov-ring-label">Kesehatan<br>Sistem</span>
+            </div>
+          </div>
+        </div>
+        <div class="ov-hero-info">
+          <div class="ov-hero-title">Status Layanan AustinPay</div>
+          <div class="ov-hero-desc" id="ov-health-desc">Memuat data...</div>
+          <div class="ov-hero-sub">Diperbarui otomatis secara berkala berdasarkan data transaksi &amp; uptime server.</div>
+          <div class="ov-hero-badges">
+            <span class="ov-hero-badge"><i class="fas fa-signal"></i> Uptime <span id="ov-badge-uptime">-</span></span>
+            <span class="ov-hero-badge"><i class="fas fa-download"></i> Deposit Sukses <span id="ov-badge-deposit">-</span></span>
+            <span class="ov-hero-badge"><i class="fas fa-upload"></i> Withdraw Sukses <span id="ov-badge-withdraw">-</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistik Umum -->
+      <div class="ov-section-title"><i class="fas fa-chart-simple"></i> Statistik Umum</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total User</div>
+            <div class="stat-value" id="ov-total-users">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-chart-bar"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Transaksi</div>
+            <div class="stat-value" id="ov-total-tx">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-tower-broadcast"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Traffic</div>
+            <div class="stat-value" id="ov-total-traffic">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-gauge"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Rata-rata Respons</div>
+            <div class="stat-value" id="ov-avg-response">0 ms</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistik Deposit -->
+      <div class="ov-section-title"><i class="fas fa-download"></i> Statistik Deposit</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-inbox"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Request Deposit</div>
+            <div class="stat-value" id="ov-deposit-request">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Deposit Berhasil</div>
+            <div class="stat-value" id="ov-deposit-success">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-circle-xmark"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Deposit Gagal</div>
+            <div class="stat-value" id="ov-deposit-failed">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Request Deposit Gagal</div>
+            <div class="stat-value" id="ov-deposit-request-failed">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov-bar-card">
+        <div class="ov-bar-row">
+          <span class="ov-bar-row-label">Tingkat Keberhasilan Deposit</span>
+          <span class="ov-bar-row-value" id="ov-deposit-rate-value">0%</span>
+        </div>
+        <div class="ov-bar-track"><div class="ov-bar-fill" id="ov-deposit-rate-fill" style="width:0%;background:var(--success)"></div></div>
+      </div>
+
+      <!-- Statistik Withdraw & Server -->
+      <div class="ov-section-title"><i class="fas fa-upload"></i> Statistik Withdraw &amp; Server</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Withdraw Berhasil</div>
+            <div class="stat-value" id="ov-withdraw-success">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-circle-xmark"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Withdraw Gagal</div>
+            <div class="stat-value" id="ov-withdraw-failed">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-clock-rotate-left"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Uptime Sejak</div>
+            <div class="stat-value" id="ov-uptime-since" style="font-size:14px">-</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-microchip"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Beban Server (CPU 1m)</div>
+            <div class="stat-value" id="ov-cpu-load">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ov-bar-card">
+        <div class="ov-bar-row">
+          <span class="ov-bar-row-label">Tingkat Keberhasilan Withdraw</span>
+          <span class="ov-bar-row-value" id="ov-withdraw-rate-value">0%</span>
+        </div>
+        <div class="ov-bar-track"><div class="ov-bar-fill" id="ov-withdraw-rate-fill" style="width:0%;background:var(--success)"></div></div>
+      </div>
+      <div class="ov-bar-card">
+        <div class="ov-bar-row">
+          <span class="ov-bar-row-label">Uptime Website</span>
+          <span class="ov-bar-row-value" id="ov-uptime-rate-value">0%</span>
+        </div>
+        <div class="ov-bar-track"><div class="ov-bar-fill" id="ov-uptime-rate-fill" style="width:0%;background:var(--primary)"></div></div>
+      </div>
+
+      <div class="ov-note">
+        <i class="fas fa-circle-info" style="margin-top:1px"></i>
+        <span>Data di halaman ini adalah ringkasan performa website secara umum, dihitung dari data transaksi yang sudah tercatat sebelumnya — bukan riwayat pribadi. Untuk melihat riwayat transaksi Anda sendiri, buka menu <b>Riwayat</b>.</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script>
+function formatNumber(n) {
+  return new Intl.NumberFormat('id-ID').format(n || 0);
+}
+
+function setRing(el, percent) {
+  const deg = Math.max(0, Math.min(100, percent)) * 3.6;
+  el.style.setProperty('--ov-deg', deg + 'deg');
+}
+
+function ringColorClass(percent) {
+  if (percent >= 90) return 'var(--success)';
+  if (percent >= 70) return 'var(--warning)';
+  return 'var(--danger)';
+}
+
+async function loadOverview() {
+  const authRes = await Auth.check();
+  if (!authRes) return;
+  Auth.renderUserInfo(authRes.user, authRes.wallet);
+
+  const data = await API.get('/api/user/overview');
+  if (!data.success) {
+    Toast.error(data.message || 'Gagal memuat data overview');
+    return;
+  }
+
+  const { users, transactions, deposit, withdraw, uptime, performance, traffic, health_score } = data;
+
+  // Hero
+  document.getElementById('ov-health-value').textContent = health_score + '%';
+  const ringEl = document.getElementById('ov-health-ring');
+  setRing(ringEl, health_score);
+  ringEl.style.background = `conic-gradient(#fff ${health_score * 3.6}deg, rgba(255,255,255,.25) 0deg)`;
+  const desc = health_score >= 90 ? 'Semua sistem berjalan normal'
+    : health_score >= 70 ? 'Sistem berjalan cukup baik'
+    : 'Sistem sedang mengalami gangguan';
+  document.getElementById('ov-health-desc').textContent = desc;
+  document.getElementById('ov-badge-uptime').textContent = uptime.percent + '%';
+  document.getElementById('ov-badge-deposit').textContent = deposit.success_rate + '%';
+  document.getElementById('ov-badge-withdraw').textContent = withdraw.success_rate + '%';
+
+  // Statistik umum
+  document.getElementById('ov-total-users').textContent = formatNumber(users.total);
+  document.getElementById('ov-total-tx').textContent = formatNumber(transactions.total);
+  document.getElementById('ov-total-traffic').textContent = formatNumber(traffic.total_requests);
+  document.getElementById('ov-avg-response').textContent = formatNumber(performance.avg_response_ms) + ' ms';
+
+  // Deposit
+  document.getElementById('ov-deposit-request').textContent = formatNumber(deposit.total_request);
+  document.getElementById('ov-deposit-success').textContent = formatNumber(deposit.success);
+  document.getElementById('ov-deposit-failed').textContent = formatNumber(deposit.failed);
+  document.getElementById('ov-deposit-request-failed').textContent = formatNumber(deposit.failed);
+  document.getElementById('ov-deposit-rate-value').textContent = deposit.success_rate + '%';
+  const depFill = document.getElementById('ov-deposit-rate-fill');
+  depFill.style.width = deposit.success_rate + '%';
+  depFill.style.background = ringColorClass(deposit.success_rate);
+
+  // Withdraw & server
+  document.getElementById('ov-withdraw-success').textContent = formatNumber(withdraw.success);
+  document.getElementById('ov-withdraw-failed').textContent = formatNumber(withdraw.failed);
+  document.getElementById('ov-uptime-since').textContent = formatDate(uptime.since, false);
+  document.getElementById('ov-cpu-load').textContent = performance.cpu_load_1m;
+  document.getElementById('ov-withdraw-rate-value').textContent = withdraw.success_rate + '%';
+  const wdFill = document.getElementById('ov-withdraw-rate-fill');
+  wdFill.style.width = withdraw.success_rate + '%';
+  wdFill.style.background = ringColorClass(withdraw.success_rate);
+
+  document.getElementById('ov-uptime-rate-value').textContent = uptime.percent + '%';
+  const upFill = document.getElementById('ov-uptime-rate-fill');
+  upFill.style.width = uptime.percent + '%';
+  upFill.style.background = ringColorClass(uptime.percent);
+
+  Heartbeat.start();
+}
+
+loadOverview();
+// Refresh berkala tiap 60 detik supaya angka traffic/performa tetap terasa "live"
+// tanpa perlu reload manual.
+setInterval(loadOverview, 60000);
+</script>
+</body>
+</html>

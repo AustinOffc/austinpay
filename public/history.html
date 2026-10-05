@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Riwayat — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+  <style>
+    /* Bukti Withdraw (receipt) — sama seperti di withdraw.html, warna
+       sengaja di-hardcode (bukan var(--...)) supaya hasil downloadnya
+       selalu putih/terang & konsisten, gak ikut tema dark/light user. */
+    .receipt-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid #eef1f4; }
+    .receipt-row:last-child { border-bottom:none; }
+    .receipt-label { font-size:13px; color:#64748b; }
+    .receipt-value { font-size:13px; font-weight:600; color:#0f172a; text-align:right; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item active" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Riwayat Transaksi</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" id="tab-all" onclick="switchTab('all')">Semua</button>
+        <button class="btn btn-outline btn-sm" id="tab-deposit" onclick="switchTab('deposit')">Deposit</button>
+        <button class="btn btn-outline btn-sm" id="tab-withdraw" onclick="switchTab('withdraw')">Withdraw</button>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-16">
+        <div class="card-body" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div style="flex:1;min-width:160px">
+            <label class="form-label">Cari</label>
+            <input type="text" class="form-control" id="search-input" placeholder="Cari transaksi...">
+          </div>
+          <div>
+            <label class="form-label">Dari</label>
+            <input type="date" class="form-control" id="date-from">
+          </div>
+          <div>
+            <label class="form-label">Sampai</label>
+            <input type="date" class="form-control" id="date-to">
+          </div>
+          <div>
+            <label class="form-label">Status</label>
+            <select class="form-control" id="status-filter">
+              <option value="">Semua Status</option>
+              <option value="success">Berhasil</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Gagal</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="loadData(1)"><i class="fas fa-search"></i> Filter</button>
+          <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-alt"></i> Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="table-title">Semua Transaksi</span>
+          <span class="text-muted text-sm" id="total-info"></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="table" id="main-table">
+            <thead id="table-head"></thead>
+            <tbody id="table-body">
+              <tr><td colspan="6"><div class="loading-spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <span class="pagination-info" id="page-info"></span>
+          <div class="pagination-nav" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Bukti Withdraw: rincian transaksi yang bisa didownload user sebagai gambar -->
+<div class="modal-overlay" id="receipt-modal-overlay">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px"></i>Bukti Withdraw</span>
+      <button class="modal-close" id="receipt-modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div id="receipt-card" style="background:#f4f5f7;padding:28px 20px;font-family:inherit">
+        <div style="text-align:center;margin-bottom:22px">
+          <div id="receipt-status-icon" style="width:56px;height:56px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:22px"></div>
+          <div id="receipt-status-label" style="font-size:14px;font-weight:700;margin-bottom:8px"></div>
+          <div style="font-size:13px;color:#94a3b8">Nominal Withdraw</div>
+          <div style="font-size:30px;font-weight:800;color:#0f172a">Rp <span id="receipt-amount"></span></div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:2px 18px">
+          <div class="receipt-row">
+            <span class="receipt-label">Dari</span>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:#0f172a">AustinPay</div>
+              <div style="font-size:12px;color:#64748b">austinstore.id</div>
+            </div>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">Ke</span>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:14px;color:#0f172a" id="receipt-to-name"></div>
+              <div style="font-size:12px;color:#64748b" id="receipt-to-account"></div>
+            </div>
+          </div>
+          <div class="receipt-row"><span class="receipt-label">Jumlah Withdraw</span><span class="receipt-value" id="receipt-jumlah"></span></div>
+          <div class="receipt-row"><span class="receipt-label">No. Transaksi</span><span class="receipt-value" id="receipt-txid" style="font-size:11px;word-break:break-all;max-width:200px"></span></div>
+          <div class="receipt-row"><span class="receipt-label">Metode Transaksi</span><span class="receipt-value" id="receipt-method"></span></div>
+          <div class="receipt-row"><span class="receipt-label">Waktu Transaksi</span><span class="receipt-value" id="receipt-time" style="font-size:12px"></span></div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:18px">AustinPay · austinstore.id</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="receipt-modal-close2">Tutup</button>
+      <button class="btn btn-primary" id="receipt-download-btn"><i class="fas fa-download"></i> Download Bukti</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script>
+let currentTab = 'all';
+let currentPage = 1;
+
+const TABS = {
+  all: { label: 'Semua Transaksi', endpoint: '/api/user/transactions', cols: ['Deskripsi','Tipe','Nominal','Status','Tanggal'] },
+  deposit: { label: 'Riwayat Deposit', endpoint: '/api/deposit/history', cols: ['ID Transaksi','Nominal','Fee','Status','Tanggal'] },
+  withdraw: { label: 'Riwayat Withdraw', endpoint: '/api/withdraw/history', cols: ['Metode','Rekening','Nominal','Status','Tanggal','Bukti'] },
+};
+
+// Baris withdraw yang lagi ditampilkan di tabel (halaman berjalan), disimpan
+// di sini supaya openReceipt(i) bisa ambil detail lengkapnya buat modal
+// Bukti Withdraw — sama seperti pola di withdraw.html.
+let currentWithdrawRows = [];
+
+async function init() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+
+  const params = new URLSearchParams(location.search);
+  const tab = params.get('tab');
+  if (tab && TABS[tab]) currentTab = tab;
+  updateTabUI();
+  loadData(1);
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  currentPage = 1;
+  document.getElementById('search-input').value = '';
+  document.getElementById('date-from').value = '';
+  document.getElementById('date-to').value = '';
+  document.getElementById('status-filter').value = '';
+  updateTabUI();
+  loadData(1);
+}
+
+function updateTabUI() {
+  Object.keys(TABS).forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    btn.className = t === currentTab ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+  });
+  document.getElementById('table-title').textContent = TABS[currentTab].label;
+  const cols = TABS[currentTab].cols;
+  document.getElementById('table-head').innerHTML = `<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+}
+
+async function loadData(page = 1) {
+  currentPage = page;
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = `<tr><td colspan="6"><div class="loading-spinner"></div></td></tr>`;
+
+  const params = new URLSearchParams({ page, limit: 15 });
+  const search = document.getElementById('search-input').value;
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+  const status = document.getElementById('status-filter').value;
+  if (search) params.append('search', search);
+  if (dateFrom) params.append('date_from', dateFrom);
+  if (dateTo) params.append('date_to', dateTo);
+  if (status) params.append('status', status);
+
+  const res = await API.get(`${TABS[currentTab].endpoint}?${params}`);
+
+  if (!res.success) {
+    tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Gagal memuat data</td></tr>`;
+    return;
+  }
+
+  document.getElementById('total-info').textContent = `${res.total} data`;
+  document.getElementById('page-info').textContent = `Halaman ${res.page} dari ${res.pages || 1} (${res.total} total)`;
+
+  if (!res.data.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="table-empty"><i class="fas fa-inbox" style="font-size:36px;margin-bottom:12px;display:block;color:var(--text-muted)"></i><p>Tidak ada data ditemukan</p></div></td></tr>`;
+    renderPagination('pagination', 1, 1, () => {});
+    return;
+  }
+
+  currentWithdrawRows = currentTab === 'withdraw' ? res.data : [];
+  tbody.innerHTML = res.data.map((row, i) => renderRow(row, i)).join('');
+  renderPagination('pagination', res.page, res.pages, loadData);
+
+  // [FIX] CSP cuma meng-hash-whitelist inline onclick STATIS yang ada di
+  // file HTML (lihat csp.service.js). onclick dengan index beda tiap baris
+  // gak akan pernah cocok sama whitelist -> browser diam-diam block
+  // handler-nya. Solusi: data-attribute + event delegation (pola sama
+  // kayak tombol Bukti di withdraw.html / tombol Aksi di admin.html).
+  if (!tbody._receiptActionBound) {
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action="receipt"]');
+      if (!btn) return;
+      openReceipt(Number(btn.dataset.index));
+    });
+    tbody._receiptActionBound = true;
+  }
+
+  // [BARU] Tombol salin ID transaksi (data-attribute + event delegation, bukan inline onclick).
+  if (!tbody._copyTrxBound) {
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action="copy-trx"]');
+      if (!btn) return;
+      copyToClipboard(btn.dataset.id);
+    });
+    tbody._copyTrxBound = true;
+  }
+}
+
+// [BARU] Baris tanggal dibuat + tanggal status terakhir diupdate, dipisah
+// biar kelihatan kalau ada gap waktu antara transaksi dibuat vs kapan
+// status-nya difinalisasi (paid/expired/cancel) — penting buat nelusurin
+// kasus kayak deposit yang "Expired" padahal sempat dibayar tepat waktu,
+// cuma mutasi providernya telat settle. Kalau belum pernah diupdate ulang
+// (createdAt === updatedAt persis), baris kedua gak usah ditampilin biar
+// gak berisik.
+function dateDetailCell(row) {
+  const created = formatDate(row.createdAt);
+  const updated = row.updatedAt && row.updatedAt !== row.createdAt ? formatDate(row.updatedAt) : null;
+  return `<div>Dibuat: ${created}</div>${updated ? `<div style="margin-top:2px">Update: ${updated}</div>` : ''}`;
+}
+
+function renderRow(row, i) {
+  if (currentTab === 'all') {
+    // [FIX] Sebelumnya cuma dua kondisi (deposit = ijo/plus, selain itu
+    // selalu dianggap "keluar" = merah/minus) — jadi adjustment saldo
+    // manual oleh admin yang sifatnya nambah saldo ('add') ikut tampil
+    // seolah saldo berkurang. Sekarang dibedakan per tipe + arahnya
+    // (row.direction, diisi backend khusus utk type 'adjustment').
+    let iconCls, color, sign;
+    if (row.type === 'deposit') {
+      iconCls = 'fas fa-download'; color = 'var(--success)'; sign = '+';
+    } else if (row.type === 'withdraw' || row.type === 'instant_withdraw') {
+      iconCls = 'fas fa-upload'; color = 'var(--danger)'; sign = '−';
+    } else if (row.type === 'adjustment') {
+      const isIn = row.direction === 'in';
+      const isSame = row.direction === 'same';
+      iconCls = 'fas fa-sliders-h';
+      color = isSame ? 'var(--text-muted)' : (isIn ? 'var(--success)' : 'var(--danger)');
+      sign = isSame ? '' : (isIn ? '+' : '−');
+    } else {
+      iconCls = 'fas fa-sync'; color = 'var(--danger)'; sign = '−';
+    }
+    return `<tr>
+      <td><div style="font-size:13px"><i class="${iconCls}"></i> ${row.description || '-'}</div></td>
+      <td><span class="badge badge-secondary" style="text-transform:capitalize">${row.type}</span></td>
+      <td style="font-weight:700;color:${color}">${sign}${formatRupiah(row.amount)}</td>
+      <td>${statusBadge(row.status)}</td>
+      <td class="text-muted text-xs">${dateDetailCell(row)}</td>
+    </tr>`;
+  }
+  if (currentTab === 'deposit') {
+    return `<tr>
+      <td><code style="font-size:11px">${(row.transaction_id||'').substring(0,24)}...</code> <button class="btn btn-outline btn-sm" data-action="copy-trx" data-id="${row.transaction_id||''}" title="Salin ID transaksi" style="padding:2px 6px;margin-left:4px"><i class="fas fa-copy"></i></button></td>
+      <td style="font-weight:700;color:var(--success)">+${formatRupiah(row.amount)}</td>
+      <td class="text-muted">${formatRupiah(row.fee||0)}</td>
+      <td>${statusBadge(row.status)}</td>
+      <td class="text-muted text-xs">${dateDetailCell(row)}</td>
+    </tr>`;
+  }
+  if (currentTab === 'withdraw') {
+    return `<tr>
+      <td><strong>${row.method}</strong></td>
+      <td><code style="font-size:12px">${row.account_number}</code><br><span class="text-xs text-muted">${row.account_name}</span></td>
+      <td style="font-weight:700;color:var(--danger)">−${formatRupiah(row.amount)}</td>
+      <td>${statusBadge(row.status)}${row.reject_reason ? `<br><span class="text-xs text-muted">${row.reject_reason}</span>` : ''}</td>
+      <td class="text-muted text-xs">${dateDetailCell(row)}</td>
+      <td><button class="btn btn-outline btn-sm" data-action="receipt" data-index="${i}" title="Lihat & download bukti"><i class="fas fa-receipt"></i></button></td>
+    </tr>`;
+  }
+}
+
+// ── Bukti Withdraw: modal rincian transaksi + download sebagai gambar ──
+// (sama persis seperti di withdraw.html — data withdraw manual di sini
+// bentuknya identik: id, method, account_number, account_name, amount,
+// status, createdAt, updatedAt.)
+const RECEIPT_STATUS_META = {
+  success:    { bg: '#dcfce7', color: '#16a34a', icon: 'fa-check',         label: 'Withdraw Berhasil' },
+  paid:       { bg: '#dcfce7', color: '#16a34a', icon: 'fa-check',         label: 'Withdraw Berhasil' },
+  pending:    { bg: '#fef9c3', color: '#ca8a04', icon: 'fa-clock',         label: 'Menunggu Diproses' },
+  processing: { bg: '#dbeafe', color: '#2563eb', icon: 'fa-arrows-rotate', label: 'Sedang Diproses' },
+  failed:     { bg: '#fee2e2', color: '#dc2626', icon: 'fa-xmark',         label: 'Withdraw Gagal' },
+  rejected:   { bg: '#fee2e2', color: '#dc2626', icon: 'fa-xmark',         label: 'Withdraw Ditolak' },
+};
+
+let currentReceipt = null;
+
+function openReceipt(index) {
+  const w = currentWithdrawRows[index];
+  if (!w) return;
+  currentReceipt = w;
+
+  const meta = RECEIPT_STATUS_META[w.status] || { bg: '#e2e8f0', color: '#475569', icon: 'fa-circle-question', label: w.status };
+  const iconEl = document.getElementById('receipt-status-icon');
+  iconEl.style.background = meta.bg;
+  iconEl.style.color = meta.color;
+  iconEl.innerHTML = `<i class="fas ${meta.icon}"></i>`;
+  const labelEl = document.getElementById('receipt-status-label');
+  labelEl.textContent = meta.label;
+  labelEl.style.color = meta.color;
+
+  document.getElementById('receipt-amount').textContent = formatRupiah(w.amount, false);
+  document.getElementById('receipt-to-name').textContent = w.method;
+  document.getElementById('receipt-to-account').textContent = w.account_name
+    ? `${w.account_name} — ${w.account_number}`
+    : w.account_number;
+  document.getElementById('receipt-jumlah').textContent = formatRupiah(w.amount);
+  document.getElementById('receipt-txid').textContent = w.id;
+  document.getElementById('receipt-method').textContent = `${w.method} (Manual)`;
+  document.getElementById('receipt-time').textContent = formatDate(w.updatedAt || w.createdAt);
+
+  Modal.open('receipt-modal-overlay');
+}
+
+async function downloadReceipt() {
+  if (!currentReceipt) return;
+  const btn = document.getElementById('receipt-download-btn');
+  btnLoading(btn, true);
+  try {
+    const canvas = await html2canvas(document.getElementById('receipt-card'), {
+      backgroundColor: '#f4f5f7',
+      scale: 2,
+      useCORS: true,
+    });
+    const link = document.createElement('a');
+    link.download = `Bukti-Withdraw-${currentReceipt.id}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    Toast.error('Gagal membuat gambar bukti. Coba lagi.');
+  } finally {
+    btnLoading(btn, false);
+  }
+}
+
+document.getElementById('receipt-modal-close').addEventListener('click', () => Modal.close('receipt-modal-overlay'));
+document.getElementById('receipt-modal-close2').addEventListener('click', () => Modal.close('receipt-modal-overlay'));
+document.getElementById('receipt-download-btn').addEventListener('click', downloadReceipt);
+
+function exportCSV() {
+  const typeMap = { all: 'transactions', deposit: 'deposits', withdraw: 'withdraws' };
+  window.open(apiUrl(`/api/user/export?type=${typeMap[currentTab]}`), '_blank');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadData(1);
+  });
+});
+
+init();
+</script>
+</body>
+</html>

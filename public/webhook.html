@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Webhook — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+  <script>
+    document.querySelector('#fa-local') && (function(){
+      var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+      t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+    })();
+  </script>
+  <style>
+    /* ================================================================
+       [UPDATE] Halaman Webhook dirombak jadi gaya "dashboard": baris
+       kartu statistik (Delivery 24h / Berhasil / Gagal / Avg Response)
+       di atas, lalu kartu "Webhook Terdaftar" berisi daftar SEMUA
+       webhook milik user (sekarang boleh lebih dari satu — sebelumnya
+       cuma 1 slot config per akun). Dokumentasi payload & signature
+       tetap ada di bawah, dibungkus <details> supaya tidak memenuhi
+       layar di HP.
+       ================================================================ */
+    .wh-item-list { display: flex; flex-direction: column; gap: 10px; }
+    .wh-item {
+      display: flex; align-items: center; gap: 12px; padding: 14px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-card);
+    }
+    @media (max-width: 640px) { .wh-item { flex-wrap: wrap; } }
+    .wh-item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--border); }
+    .wh-item-dot.on { background: var(--success); box-shadow: 0 0 0 3px var(--success-light); }
+    .wh-item-dot.off { background: var(--text-muted); }
+    .wh-item-info { flex: 1; min-width: 0; }
+    .wh-item-name { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+    .wh-item-url { font-size: 12px; color: var(--text-muted); word-break: break-all; }
+    .wh-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .wh-item-events { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .wh-item-events .badge { font-size: 10px; padding: 2px 7px; }
+    .wh-item-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .wh-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+    .wh-switch input { opacity: 0; width: 0; height: 0; }
+    .wh-switch-track {
+      position: absolute; inset: 0; background: var(--border); border-radius: 999px;
+      cursor: pointer; transition: background var(--transition);
+    }
+    .wh-switch-track::before {
+      content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+      background: #fff; border-radius: 50%; transition: transform var(--transition);
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+    .wh-switch input:checked + .wh-switch-track { background: var(--primary); }
+    .wh-switch input:checked + .wh-switch-track::before { transform: translateX(18px); }
+    .wh-icon-btn {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-muted);
+      cursor: pointer; font-size: 13px; transition: all var(--transition);
+    }
+    .wh-icon-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .wh-icon-btn.danger:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+    .wh-empty { text-align: center; padding: 40px 16px; }
+    .wh-empty i { font-size: 40px; color: var(--border); margin-bottom: 14px; display: block; }
+    .wh-empty-title { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .wh-empty-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+    .wh-event-list { display: flex; flex-direction: column; gap: 10px; }
+    .wh-event-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px;
+    }
+    .wh-event-item code { font-size: 12px; background: var(--bg); padding: 2px 6px; border-radius: 4px; }
+    .wh-secret-box {
+      display: flex; align-items: center; gap: 8px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px; word-break: break-all;
+    }
+    .wh-secret-btn {
+      flex-shrink: 0; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-muted);
+      cursor: pointer; font-size: 14px; transition: all var(--transition);
+    }
+    .wh-secret-btn:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .wh-json {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7;
+      overflow-x: auto; white-space: pre; color: var(--text);
+    }
+    .wh-test-result { margin-top: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); overflow: hidden; display: none; }
+    .wh-test-result-head { padding: 10px 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .wh-test-result.ok .wh-test-result-head { background: var(--success-light); color: #065f46; }
+    .wh-test-result.fail .wh-test-result-head { background: var(--danger-light); color: #991b1b; }
+    .wh-test-result-body { padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; background: var(--bg); }
+    .wh-doc-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .wh-doc-tab {
+      padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); cursor: pointer; color: var(--text-muted); background: transparent;
+    }
+    .wh-doc-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .wh-doc-details { margin-top: 16px; }
+    .wh-doc-details > summary {
+      cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 14px; padding: 4px 0;
+    }
+    .wh-doc-details > summary::-webkit-details-marker { display: none; }
+    .wh-doc-details > summary i.fa-chevron-right { transition: transform var(--transition); font-size: 11px; }
+    .wh-doc-details[open] > summary i.fa-chevron-right { transform: rotate(90deg); }
+    .wh-doc-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 20px; align-items: start; margin-top: 14px; }
+    @media (max-width: 900px) { .wh-doc-grid { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item active" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Webhook</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <div class="user-avatar" data-user-avatar style="cursor:pointer" onclick="location.href='/profile'"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <div class="alert alert-info mb-16">
+        <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+        <span style="min-width:0">Terima notifikasi <b>real-time</b> saat deposit lunas atau withdraw berubah status — kamu tidak perlu terus-menerus polling <code>/api/deposit/check/:id</code>. Bisa daftarkan lebih dari satu endpoint sekaligus.</span>
+      </div>
+
+      <div class="stats-grid mb-16">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-paper-plane"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Delivery 24h</div>
+            <div class="stat-value" id="wh-stat-delivery">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Berhasil</div>
+            <div class="stat-value" id="wh-stat-success">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-circle-xmark"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Gagal</div>
+            <div class="stat-value" id="wh-stat-failed">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-stopwatch"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Avg Response</div>
+            <div class="stat-value" id="wh-stat-avg">0ms</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-satellite-dish" style="color:var(--primary)"></i> Webhook Terdaftar</span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:13px;color:var(--text-muted)" id="wh-count-label">0 webhook</span>
+            <button class="btn btn-primary btn-sm" id="wh-add-btn"><i class="fas fa-plus"></i> Tambah Webhook</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="wh-item-list" class="wh-item-list"></div>
+        </div>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-header"><span class="card-title"><i class="fas fa-list" style="color:var(--primary)"></i> Riwayat Pengiriman</span></div>
+        <div class="card-body" style="padding-bottom:0">
+          <div class="form-group" style="max-width:280px">
+            <label class="form-label">Filter Webhook</label>
+            <select class="form-control" id="wh-log-filter">
+              <option value="">Semua webhook</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Waktu</th><th>Event</th><th>Percobaan</th><th>HTTP</th><th>Status</th><th>Durasi</th></tr></thead>
+            <tbody id="wh-log-list"><tr><td colspan="6" class="table-empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="wh-log-pagination"></div>
+      </div>
+
+      <details class="wh-doc-details">
+        <summary><i class="fas fa-chevron-right"></i> <i class="fas fa-book" style="color:var(--primary)"></i> Dokumentasi Signature &amp; Payload</summary>
+        <div class="wh-doc-grid">
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-file-code" style="color:var(--primary)"></i> Format Payload</span></div>
+            <div class="card-body">
+              <div class="wh-doc-tabs" id="wh-doc-tabs">
+                <button type="button" class="wh-doc-tab active" data-event="deposit.paid">deposit.paid</button>
+                <button type="button" class="wh-doc-tab" data-event="withdraw.approved">withdraw.approved</button>
+                <button type="button" class="wh-doc-tab" data-event="withdraw.rejected">withdraw.rejected</button>
+                <button type="button" class="wh-doc-tab" data-event="mutasi.shopee">mutasi.shopee</button>
+              </div>
+              <div class="wh-json" id="wh-doc-json"></div>
+              <div class="form-hint mt-8">Semua payload dibungkus <code>{ "event": "...", "data": {...}, "sentAt": "..." }</code>. Header <code>X-AustinPay-Event</code> juga berisi nama event yang sama. Server tujuan wajib membalas HTTP 200 dalam 10 detik, kalau gagal/timeout AustinPay otomatis retry hingga 3 kali.</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-shield-halved" style="color:var(--success)"></i> Verifikasi Signature (Node.js)</span></div>
+            <div class="card-body">
+              <div class="wh-json">const crypto = require('crypto');
+
+function isValid(rawBody, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, 'hex'),
+    Buffer.from(expected, 'hex')
+  );
+}
+
+// signature = req.headers['x-austinpay-signature']</div>
+              <div class="form-hint mt-8">Setiap webhook punya secret sendiri — pastikan verifikasi pakai secret milik webhook yang bersangkutan.</div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah / Edit Webhook -->
+<div class="modal-overlay" id="wh-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="wh-modal-title">Tambah Webhook</span>
+      <button class="modal-close" onclick="Modal.close('wh-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="wh-modal-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Nama Webhook <span style="color:var(--text-muted);font-weight:400">(opsional)</span></label>
+        <input type="text" class="form-control" id="wh-form-name" placeholder="Contoh: Server Produksi">
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL Endpoint Server Kamu</label>
+        <input type="text" class="form-control" id="wh-form-url" placeholder="https://api.domain-kamu.com/webhook/austinpay">
+        <div class="form-hint">Server tujuan wajib membalas HTTP 200 dalam 10 detik.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Event yang Dikirim</label>
+        <div class="wh-event-list">
+          <label class="wh-event-item"><input type="checkbox" value="deposit.paid" class="wh-form-event-cb" checked> <code>deposit.paid</code> — Deposit QRIS berhasil lunas</label>
+          <label class="wh-event-item"><input type="checkbox" value="withdraw.approved" class="wh-form-event-cb" checked> <code>withdraw.approved</code> — Withdraw disetujui admin</label>
+          <label class="wh-event-item"><input type="checkbox" value="withdraw.rejected" class="wh-form-event-cb" checked> <code>withdraw.rejected</code> — Withdraw ditolak (saldo dikembalikan)</label>
+          <label class="wh-event-item"><input type="checkbox" value="mutasi.shopee" class="wh-form-event-cb" checked> <code>mutasi.shopee</code> — Mutasi baru di akun ShopeePay yang kamu hubungkan</label>
+        </div>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between">
+        <label class="form-label" style="margin:0">Aktifkan webhook ini</label>
+        <label class="wh-switch">
+          <input type="checkbox" id="wh-form-enabled">
+          <span class="wh-switch-track"></span>
+        </label>
+      </div>
+
+      <div id="wh-form-secret-group" class="form-group" style="display:none">
+        <label class="form-label">Signing Secret</label>
+        <div class="wh-secret-box">
+          <span id="wh-form-secret-value" style="flex:1">••••••••••••••••••••••••••••••••••••••••</span>
+          <span class="wh-secret-btn" onclick="toggleFormSecretVisibility()" id="wh-form-secret-eye" title="Tampilkan/sembunyikan"><i class="fas fa-eye"></i></span>
+          <span class="wh-secret-btn" onclick="copyFormSecret()" title="Salin secret"><i class="fas fa-copy"></i></span>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm mt-8" id="wh-form-regen-btn"><i class="fas fa-sync"></i> Ganti Secret</button>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <button type="button" class="btn btn-outline" id="wh-form-test-btn"><i class="fas fa-paper-plane"></i> Kirim Test Webhook</button>
+        <div class="form-hint mt-8" id="wh-form-test-hint" style="display:none">Webhook ini belum disimpan, jadi test pakai secret sementara (bukan secret asli) — cuma mengecek koneksi &amp; format payload. Verifikasi signature di server kamu wajar akan gagal. Simpan dulu webhooknya, baru test lagi dari tombol Edit untuk cek signature yang sebenarnya.</div>
+        <div class="wh-test-result" id="wh-form-test-result">
+          <div class="wh-test-result-head" id="wh-form-test-result-head"></div>
+          <div class="wh-test-result-body" id="wh-form-test-result-body"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="wh-form-delete-btn" style="display:none;margin-right:auto;color:var(--danger);border-color:var(--danger)"><i class="fas fa-trash"></i> Hapus</button>
+      <button class="btn btn-outline" onclick="Modal.close('wh-modal')">Batal</button>
+      <button class="btn btn-primary" id="wh-form-save-btn"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script src="/js/webhook.js"></script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Penghargaan — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .pg-intro { margin-bottom: 20px; }
+    .pg-intro h2 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+    .pg-intro p { font-size: 13px; color: var(--text-muted); }
+
+    .pg-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+
+    /* ── Certificate ─────────────────────────────────────────── */
+    .cert {
+      position: relative;
+      border-radius: 10px;
+      padding: 26px 22px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(212,175,55,.10), transparent 55%),
+        radial-gradient(circle at 0% 100%, rgba(212,175,55,.08), transparent 55%),
+        var(--bg-card);
+      border: 1px solid #d4af37;
+      box-shadow: 0 4px 18px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    .cert::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 1.5px solid #d4af37;
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: .55;
+    }
+    .cert-corner {
+      position: absolute;
+      width: 34px; height: 34px;
+      color: #d4af37;
+      opacity: .8;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cert-corner.tl { top: 10px; left: 10px; }
+    .cert-corner.tr { top: 10px; right: 10px; transform: scaleX(-1); }
+    .cert-corner.bl { bottom: 10px; left: 10px; transform: scaleY(-1); }
+    .cert-corner.br { bottom: 10px; right: 10px; transform: scale(-1,-1); }
+
+    .cert-inner { position: relative; z-index: 1; text-align: center; padding: 6px 4px 0; }
+
+    .cert-brand {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: .12em;
+      color: var(--primary); text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .cert-brand .cert-brand-icon {
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cert-brand .cert-brand-icon img {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
+    .cert-category {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; color: #b8860b;
+      margin-bottom: 6px;
+    }
+    .cert-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 21px; font-weight: 800; color: var(--text);
+      margin-bottom: 2px;
+    }
+    .cert-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+
+    .cert-given-to { font-size: 11.5px; color: var(--text-muted); letter-spacing: .04em; margin-bottom: 6px; }
+    .cert-name {
+      font-family: 'Great Vibes', cursive;
+      font-size: 40px;
+      line-height: 1.15;
+      color: var(--primary);
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    .cert-name-underline {
+      width: 160px; height: 2px; margin: 0 auto 16px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    }
+    .cert-empty-name {
+      font-size: 14px; color: var(--text-muted); font-style: italic;
+      margin-bottom: 16px;
+      padding: 10px;
+    }
+
+    .cert-desc {
+      font-size: 12.5px; color: var(--text-muted); line-height: 1.6;
+      max-width: 420px; margin: 0 auto 18px;
+    }
+
+    .cert-value {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 700; color: var(--primary);
+      background: var(--primary-light);
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 18px;
+    }
+
+    .cert-footer {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 12px; margin-top: 6px;
+      border-top: 1px dashed var(--border);
+      padding-top: 14px;
+    }
+    .cert-footer-left { text-align: left; flex: 1; min-width: 0; }
+    .cert-no { font-size: 10px; color: var(--text-muted); font-family: monospace; }
+    .cert-date { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .cert-sign { text-align: center; flex-shrink: 0; }
+    .cert-sign-name {
+      font-family: 'Great Vibes', cursive;
+      font-size: 22px; color: var(--text);
+      line-height: 1;
+    }
+    .cert-sign-line { width: 110px; height: 1px; background: var(--border); margin: 4px auto; }
+    .cert-sign-role { font-size: 9.5px; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; }
+
+    .cert-seal {
+      position: absolute;
+      bottom: 16px; right: 16px;
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      border: 2px solid #d4af37;
+      display: none;
+      align-items: center; justify-content: center;
+      color: #d4af37;
+      font-size: 20px;
+      opacity: .35;
+      transform: rotate(-12deg);
+    }
+    @media (min-width: 560px) {
+      .cert-seal { display: flex; }
+    }
+
+    .pg-loading, .pg-error { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .pg-loading i, .pg-error i { font-size: 32px; margin-bottom: 12px; display: block; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item active" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Penghargaan</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content" style="max-width:720px">
+      <div class="pg-intro">
+        <h2><i class="fas fa-award" style="color:#d4af37"></i> Dinding Penghargaan AustinPay</h2>
+        <p>Sertifikat resmi untuk orang-orang di balik AustinPay — mulai dari jajaran, top performer bulanan, sampai partner kepercayaan.</p>
+      </div>
+
+      <div id="pg-container">
+        <div class="pg-loading"><i class="fas fa-spinner fa-spin"></i> Memuat sertifikat...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script>
+async function init() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+  loadAwards();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+// Nomor sertifikat pseudo-unik & stabil per id+nama, murni kosmetik.
+function certNumber(id, name) {
+  let hash = 0;
+  const str = `${id}:${name || ''}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  const code = String(hash % 100000).padStart(5, '0');
+  return `AP/CERT/${new Date().getFullYear()}/${code}`;
+}
+
+function todayLabel() {
+  return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function renderCert(cert) {
+  const hasName = !!cert.name;
+  const valueLabel = cert.value_label || '';
+  const formattedValue = cert.value == null
+    ? ''
+    : (valueLabel.toLowerCase().includes('deposit')
+        ? formatRupiah(cert.value)
+        : `${cert.value}x`);
+
+  return `
+    <div class="cert">
+      <span class="cert-corner tl"><i class="fas fa-leaf"></i></span>
+      <span class="cert-corner tr"><i class="fas fa-leaf"></i></span>
+      <span class="cert-corner bl"><i class="fas fa-leaf"></i></span>
+      <span class="cert-corner br"><i class="fas fa-leaf"></i></span>
+      <span class="cert-seal"><i class="fas fa-stamp"></i></span>
+
+      <div class="cert-inner">
+        <div class="cert-brand"><span class="cert-brand-icon"><img src="/img/austinpay-logo-mark-v2.png" alt="AustinPay"></span> AustinPay</div>
+
+        <div class="cert-category">${escapeHtml(cert.category || 'Sertifikat')}</div>
+        <div class="cert-title">${escapeHtml(cert.title)}</div>
+        <div class="cert-subtitle">${escapeHtml(cert.subtitle || '')}</div>
+
+        ${hasName ? `
+          <div class="cert-given-to">Dengan bangga diberikan kepada</div>
+          <div class="cert-name">${escapeHtml(cert.name)}</div>
+          <div class="cert-name-underline"></div>
+        ` : `
+          <div class="cert-empty-name"><i class="fas fa-hourglass-half"></i> Belum ada pemenang periode ini — pantau terus!</div>
+        `}
+
+        <div class="cert-desc">${escapeHtml(cert.desc)}</div>
+
+        ${hasName && formattedValue ? `<div class="cert-value"><i class="fas fa-chart-line"></i> ${escapeHtml(valueLabel)}: ${formattedValue}</div>` : ''}
+
+        <div class="cert-footer">
+          <div class="cert-footer-left">
+            <div class="cert-no">No. ${certNumber(cert.id, cert.name)}</div>
+            <div class="cert-date">Diterbitkan ${todayLabel()}</div>
+          </div>
+          <div class="cert-sign">
+            <div class="cert-sign-name">Austin K.K.</div>
+            <div class="cert-sign-line"></div>
+            <div class="cert-sign-role">CEO AustinPay</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAwards() {
+  const container = document.getElementById('pg-container');
+  const res = await API.get('/api/awards');
+
+  if (!res.success) {
+    container.innerHTML = `<div class="pg-error"><i class="fas fa-triangle-exclamation"></i>Gagal memuat sertifikat, coba refresh halaman.</div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="pg-grid">${res.data.map(renderCert).join('')}</div>`;
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#c9f3e4">
+<title>API Docs — AustinPay</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+<script>
+  document.querySelector('#fa-local') && (function(){
+    var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+    t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+  })();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   API Docs — styling tambahan KHUSUS komponen unik halaman ini.
+   [UPDATE] Sebelumnya halaman ini punya <style> sendiri lengkap dengan
+   variabel warna sendiri (selalu dark, tidak ikut toggle tema). Sekarang
+   variabel dasar (warna, sidebar, topbar, modal, form, button) sudah
+   dipakai bersama dari /css/style.css seperti halaman lain — supaya
+   selaras dan ikut tema terang/gelap. Blok ini HANYA berisi komponen yang
+   memang unik untuk dokumentasi API (endpoint accordion, method badge,
+   code block syntax highlight, dst), dipetakan ke variabel tema global. */
+
+:root {
+  --mono: 'JetBrains Mono', monospace;
+  --get: #38bdf8;
+  --get-bg: rgba(56,189,248,.1);
+  --post: #34d399;
+  --post-bg: rgba(52,211,153,.1);
+}
+code, pre { font-family: var(--mono); }
+
+/* ── Sidebar: section tambahan navigasi dokumentasi ── */
+.nav-divider { height: 1px; background: var(--border); margin: 8px 12px; }
+.nav-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px;
+  font-family: var(--mono); min-width: 36px; text-align: center; flex-shrink: 0;
+  letter-spacing: .03em; margin-left: auto;
+}
+.nb-get { background: var(--get-bg); color: var(--get); }
+.nb-post { background: var(--post-bg); color: var(--post); }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 12px; font-size: 11.5px; color: var(--text-muted);
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); flex-shrink: 0; }
+
+/* ── Topbar: info base URL tambahan ── */
+.topbar-base {
+  font-size: 11.5px; color: var(--text-muted);
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 6px; font-family: var(--mono);
+  display: flex; align-items: center; gap: 6px;
+}
+.topbar-base-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+
+/* ── Container ── */
+.docs-container { max-width: 900px; margin: 0 auto; }
+
+/* ── Hero ── */
+.hero { margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.hero-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -.025em; margin-bottom: 10px; line-height: 1.2; color: var(--text); }
+.hero-sub { color: var(--text-muted); font-size: 14px; max-width: 560px; margin-bottom: 24px; line-height: 1.7; }
+.hero-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 20px; text-align: center; min-width: 80px;
+}
+.stat-card .stat-n { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -.02em; }
+.stat-card .stat-l { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+.hero-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 20px; font-size: 11.5px; color: var(--text-muted);
+}
+.pill i { color: var(--primary); font-size: 10px; }
+.pill code { color: var(--primary); font-size: 11px; }
+
+/* ── Section ── */
+.docs-section { margin-bottom: 48px; scroll-margin-top: 88px; }
+.docs-section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 6px; padding-bottom: 14px; border-bottom: 1px solid var(--border);
+}
+.docs-section-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; background: var(--primary-light); color: var(--primary);
+}
+.docs-section-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: var(--text); }
+.docs-section-desc { color: var(--text-muted); font-size: 13px; margin: 10px 0 20px; line-height: 1.7; }
+
+/* ── Endpoint card ── */
+.endpoint {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+  scroll-margin-top: 96px; transition: border-color .15s;
+}
+.endpoint:hover { border-color: var(--primary); }
+.endpoint.open { border-color: var(--primary); }
+
+.endpoint-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 18px; cursor: pointer; user-select: none;
+}
+.endpoint-head:hover { background: var(--bg); }
+
+.method-badge {
+  font-family: var(--mono); font-weight: 700; font-size: 10.5px;
+  padding: 3px 9px; border-radius: 4px; min-width: 46px;
+  text-align: center; flex-shrink: 0; letter-spacing: .04em;
+}
+.mb-get { background: var(--get-bg); color: var(--get); border: 1px solid rgba(56,189,248,.2); }
+.mb-post { background: var(--post-bg); color: var(--post); border: 1px solid rgba(52,211,153,.2); }
+
+.path-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.path-text { font-family: var(--mono); font-size: 13px; color: var(--text); word-break: break-all; }
+.copy-path-btn {
+  flex-shrink: 0; background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 10px; padding: 2px 7px; border-radius: 4px;
+  cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 3px;
+  transition: color .12s, border-color .12s;
+}
+.copy-path-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+.auth-label {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+  white-space: nowrap; flex-shrink: 0;
+}
+.al-auth { background: var(--warning-light); color: var(--warning); border: 1px solid rgba(245,158,11,.2); }
+.al-public { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.al-apikey { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(26,86,219,.2); }
+
+.chevron { color: var(--text-muted); transition: transform .2s; font-size: 10px; flex-shrink: 0; }
+.endpoint.open .chevron { transform: rotate(90deg); }
+
+.endpoint-body {
+  display: none; padding: 0 18px 20px;
+  border-top: 1px solid var(--border);
+}
+.endpoint.open .endpoint-body { display: block; }
+.ep-desc { color: var(--text-muted); font-size: 13px; margin: 14px 0 0; line-height: 1.7; }
+
+/* ── Block label ── */
+.blk { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin: 18px 0 8px; }
+
+/* ── Params table (pakai struktur .table tapi padding lebih ringkas) ── */
+.params-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.params-table th {
+  text-align: left; color: var(--text-muted); font-weight: 600; font-size: 10.5px;
+  padding: 6px 10px; border-bottom: 1px solid var(--border); letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.params-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.params-table tr:last-child td { border-bottom: none; }
+.params-table code { color: var(--primary); font-size: 12px; }
+.p-req { color: var(--danger); font-size: 10px; font-weight: 700; margin-left: 4px; }
+.p-opt { color: var(--text-muted); font-size: 10px; font-weight: 600; margin-left: 4px; }
+.p-type { color: var(--text-muted); font-size: 11.5px; }
+.p-desc { color: var(--text-muted); font-size: 12.5px; line-height: 1.5; }
+
+/* ── Code block ── */
+.code-wrap { position: relative; margin: 0; }
+pre.code-block {
+  background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; font-size: 12px; overflow-x: auto; color: #9fb3d6;
+  white-space: pre; line-height: 1.65;
+}
+[data-theme="dark"] pre.code-block { color: #9fb3d6; }
+pre.code-block code { display: block; }
+.ck { color: #7dd3fc; }
+.cs { color: #86efac; }
+.cn { color: #fb923c; }
+.cb { color: #c084fc; }
+.cc { color: #64748b; }
+.kw { color: #f472b6; }
+.url-text { color: #fcd34d; }
+
+.copy-btn {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  color: #9fb3d6; font-size: 10.5px; padding: 3px 9px;
+  border-radius: 5px; cursor: pointer; font-family: 'Inter', sans-serif;
+  display: inline-flex; align-items: center; gap: 4px; transition: .12s;
+  flex-shrink: 0;
+}
+.copy-btn:hover { color: #fff; border-color: var(--primary); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+/* Tombol copy yang berdiri sendiri (tanpa .code-header di atasnya, mis. di
+   panel response API Tester) perlu absolute supaya menumpuk di atas <pre>.
+   Yang ada di dalam .code-header dibiarkan inline-flex agar tidak bentrok
+   dengan teks "json · 200 OK" di sebelahnya. */
+.code-wrap > .copy-btn { position: absolute; top: 9px; right: 9px; z-index: 1; }
+
+/* ── Code header bar ── */
+.code-header {
+  background: rgba(0,0,0,.18); border: 1px solid var(--border); border-bottom: none;
+  border-radius: 8px 8px 0 0; padding: 8px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.code-header + pre.code-block { border-radius: 0 0 8px 8px; border-top-color: transparent; }
+.code-header-dots { display: flex; gap: 5px; }
+.code-header-dots span { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #28ca41; }
+.code-lang { font-size: 10px; font-weight: 600; color: #9fb3d6; font-family: var(--mono); letter-spacing: .04em; }
+
+/* ── Response tabs ── */
+.rtabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.rtab {
+  font-size: 11.5px; padding: 4px 10px; border-radius: 5px;
+  background: transparent; border: 1px solid var(--border);
+  cursor: pointer; color: var(--text-muted); transition: .12s;
+}
+.rtab.active { color: var(--text); border-color: var(--primary); background: var(--primary-light); }
+.rpanel { display: none; }
+.rpanel.active { display: block; }
+
+/* ── Request example language tabs (PHP / JavaScript / cURL) ── */
+.reqtabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.reqtab {
+  font-size: 11.5px; padding: 5px 12px; border-radius: 5px;
+  background: transparent; border: 1px solid var(--border);
+  cursor: pointer; color: var(--text-muted); transition: .12s;
+  font-family: 'Inter', sans-serif; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.reqtab i { font-size: 12px; }
+.reqtab:hover { color: var(--text); border-color: var(--primary); }
+.reqtab.active { color: var(--text); border-color: var(--primary); background: var(--primary-light); }
+.reqpanel { display: none; }
+.reqpanel.active { display: block; }
+
+/* ── Status badges (dalam tabel) ── */
+.s-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+.s-success, .s-paid { background: var(--success-light); color: var(--success); }
+.s-pending { background: var(--warning-light); color: var(--warning); }
+.s-expired, .s-failed, .s-rejected { background: var(--danger-light); color: var(--danger); }
+
+/* ── Note boxes ── */
+.note {
+  border-radius: 7px; padding: 10px 14px; font-size: 12.5px;
+  margin-top: 14px; display: flex; gap: 9px; align-items: flex-start; line-height: 1.55;
+}
+.note i { flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+.note-warn { background: var(--warning-light); border: 1px solid rgba(245,158,11,.2); color: var(--warning); }
+.note-info { background: var(--primary-light); border: 1px solid rgba(26,86,219,.2); color: var(--primary); }
+.note-danger { background: var(--danger-light); border: 1px solid rgba(239,68,68,.2); color: var(--danger); }
+.note-success { background: var(--success-light); border: 1px solid rgba(16,185,129,.2); color: var(--success); }
+
+/* ── Repo callout (link ke austinpay-webhook-example di GitHub) ── */
+.repo-callout {
+  margin-top: 14px; border-radius: 10px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px; text-decoration: none;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  border: 1px solid rgba(255,255,255,.08);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.repo-callout:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.repo-callout .repo-callout-icon {
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 9px;
+  background: rgba(255,255,255,.08); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: #fff;
+}
+.repo-callout .repo-callout-body { flex: 1; min-width: 0; }
+.repo-callout .repo-callout-title { font-size: 13.5px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 7px; }
+.repo-callout .repo-callout-title code { background: rgba(255,255,255,.12); color: #fff; padding: 1px 7px; border-radius: 5px; font-size: 12.5px; }
+.repo-callout .repo-callout-desc { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 3px; }
+.repo-callout .repo-callout-arrow { flex-shrink: 0; color: rgba(255,255,255,.5); font-size: 14px; transition: transform .15s ease; }
+.repo-callout:hover .repo-callout-arrow { transform: translateX(3px); color: #fff; }
+
+/* ── Error grid ── */
+.error-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.error-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.error-code { font-family: var(--mono); font-size: 26px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.02em; }
+.e2xx .error-code { color: var(--success); }
+.e4xx .error-code { color: var(--warning); }
+.e5xx .error-code { color: var(--danger); }
+.error-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+.error-desc { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+/* ── Error messages table ── */
+.err-msg-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.err-msg-table th {
+  text-align: left; color: var(--text-muted); font-weight: 600; font-size: 10.5px;
+  padding: 8px 12px; border-bottom: 1px solid var(--border); letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.err-msg-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.err-msg-table tr:last-child td { border-bottom: none; }
+.err-msg-table code { color: var(--primary); font-size: 12px; }
+.http-code { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+.hc-4 { color: var(--warning); }
+.hc-5 { color: var(--danger); }
+.hc-2 { color: var(--success); }
+
+/* ── API Tester bar ── */
+.tester-bar {
+  position: fixed; bottom: 0; left: var(--sidebar-w); right: 0; z-index: 50;
+  background: var(--bg-card); border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 24px; gap: 12px;
+}
+.tester-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+.tester-pill {
+  background: var(--primary); color: #fff; border: none;
+  font-size: 12px; font-weight: 700; padding: 7px 18px; border-radius: 7px;
+  cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 6px;
+  transition: opacity .15s;
+}
+.tester-pill:hover { opacity: .88; }
+
+/* Tester form elements khusus (textarea mono untuk JSON body) */
+.form-textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); border-radius: 7px; font-family: var(--mono);
+  font-size: 12px; padding: 8px 12px; outline: none; transition: border-color .12s;
+  resize: vertical; min-height: 90px; line-height: 1.5;
+}
+.form-textarea:focus { border-color: var(--primary); }
+.form-row { display: grid; grid-template-columns: 90px 1fr; gap: 8px; margin-bottom: 12px; }
+
+/* ── API Tester Modal ──────────────────────────────────────────
+   [FIX] Sebelumnya class ini diasumsikan sudah ada di /css/style.css
+   global, tapi ternyata tidak terdefinisi sama sekali sehingga modal
+   jatuh ke default browser style (select/input/button polos, tidak
+   nyatu dengan tema gelap). Didefinisikan lokal di sini supaya pasti
+   tampil benar terlepas dari isi style.css. */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  width: 100%; max-width: 460px; max-height: 88vh;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 -8px 40px rgba(0,0,0,.4);
+  animation: modalSlideUp .2s ease;
+}
+@media (min-width: 560px) {
+  .modal-overlay { align-items: center; }
+  .modal { border-radius: 16px; }
+}
+@keyframes modalSlideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.modal-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; }
+.modal-close {
+  background: none; border: none; color: var(--text-muted); font-size: 16px;
+  cursor: pointer; padding: 6px; line-height: 1; border-radius: 6px; transition: .12s;
+}
+.modal-close:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.modal-body { padding: 18px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 18px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-label {
+  display: block; font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+  margin-bottom: 6px; letter-spacing: .01em;
+}
+.form-input, .form-select {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); border-radius: 7px; font-family: var(--mono);
+  font-size: 12.5px; padding: 9px 12px; outline: none; transition: border-color .12s;
+}
+.form-select { font-family: 'Inter', sans-serif; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239fb3d6'/></svg>");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px;
+}
+.form-input:focus, .form-select:focus { border-color: var(--primary); }
+.form-input::placeholder { color: var(--text-muted); opacity: .6; }
+
+.tester-cancel-btn, .tester-send-btn {
+  font-size: 12.5px; font-weight: 600; padding: 9px 16px; border-radius: 7px;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: .12s;
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
+}
+.tester-cancel-btn { background: transparent; border-color: var(--border); color: var(--text-muted); }
+.tester-cancel-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.tester-send-btn { background: var(--primary); color: #fff; }
+.tester-send-btn:hover { opacity: .88; }
+.tester-send-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.resp-pane { display: none; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.resp-pane.show { display: block; }
+.resp-status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.resp-status-badge {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 700; padding: 3px 9px;
+  border-radius: 5px; background: rgba(255,255,255,.06); color: var(--text-muted);
+}
+.resp-status-badge.rsb-ok { background: rgba(52,211,153,.12); color: var(--success); }
+.resp-status-badge.rsb-err { background: rgba(248,113,113,.12); color: var(--danger); }
+.resp-time { font-size: 11px; color: var(--text-muted); }
+.input-group { display: flex; }
+.input-group .form-control { border-radius: 7px 0 0 7px; }
+.input-group .ig-btn {
+  background: var(--bg); border: 1px solid var(--border); border-left: none;
+  color: var(--text-muted); font-size: 11px; padding: 0 12px; cursor: pointer;
+  border-radius: 0 7px 7px 0; white-space: nowrap; transition: .12s;
+}
+.ig-btn:hover { color: var(--primary); }
+
+/* Response pane dalam tester */
+.resp-pane { display: none; margin-top: 14px; }
+.resp-pane.show { display: block; }
+.resp-status-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12.5px;
+}
+.resp-status-badge { font-family: var(--mono); font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 4px; }
+.rsb-ok { background: var(--success-light); color: var(--success); }
+.rsb-err { background: var(--danger-light); color: var(--danger); }
+.resp-time { color: var(--text-muted); font-size: 11px; }
+
+/* ── Auth section special styles ── */
+.auth-step {
+  display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-start;
+}
+.auth-step-n {
+  width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+  background: var(--primary-light); border: 1px solid rgba(26,86,219,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--primary);
+}
+.auth-step-content h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+.auth-step-content p { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Method pills untuk auth ── */
+.auth-methods { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+.auth-method-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+}
+.auth-method-card .amc-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.auth-method-card code { font-size: 11px; color: var(--primary); display: block; line-height: 1.5; }
+
+/* ── Footer ── */
+.docs-footer { text-align: center; padding: 32px 0 100px; color: var(--text-muted); font-size: 12px; border-top: 1px solid var(--border); margin-top: 20px; }
+.docs-footer a { color: var(--primary); }
+
+@media (max-width: 768px) {
+  .tester-bar { left: 0; }
+  .hero-stats { gap: 8px; }
+  .stat-card { padding: 12px 14px; }
+  .auth-methods { grid-template-columns: 1fr; }
+  .error-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .error-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 80px 1fr; }
+}
+</style>
+</head>
+<body class="has-nav-labels">
+
+<!-- [UPDATE] Toast & overlay sekarang pakai sistem global (toast-container
+     dikelola oleh app.js seperti halaman lain), bukan elemen toast lokal.
+     Elemen #toast lama dipertahankan sebagai fallback kosong supaya
+     showToast() di script bawah tidak error jika dipanggil sebelum
+     app.js sempat menyiapkan toast-container. -->
+<div class="toast-container" id="toast-container"></div>
+
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ── Sidebar (struktur SAMA seperti halaman lain) ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+        <span>Austin Pay</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item active" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+
+      <div class="nav-divider"></div>
+
+      <div class="nav-section-label" style="color:var(--primary)">Mulai</div>
+      <a class="nav-item" href="#intro"><span class="nav-icon"><i class="fas fa-book-open"></i></span> Pengenalan</a>
+      <a class="nav-item" href="#auth"><span class="nav-icon"><i class="fas fa-key"></i></span> Autentikasi</a>
+      <a class="nav-item" href="#limits"><span class="nav-icon"><i class="fas fa-shield-alt"></i></span> Rate Limiting</a>
+
+      <div class="nav-section-label">User</div>
+      <a class="nav-item" href="#user-account">Account Info<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#user-transactions">Transactions<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#user-mutasi">Riwayat Mutasi<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#user-mutasi-latest">Mutasi Terbaru<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#user-mutasi-accounts">Akun Mutasi<span class="nav-badge nb-get">GET</span></a>
+
+      <div class="nav-section-label">Deposit</div>
+      <a class="nav-item" href="#deposit-create">Create Deposit<span class="nav-badge nb-post">POST</span></a>
+      <a class="nav-item" href="#deposit-check">Check Status<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#deposit-cancel">Cancel Deposit<span class="nav-badge nb-post">POST</span></a>
+      <a class="nav-item" href="#deposit-history">History<span class="nav-badge nb-get">GET</span></a>
+
+      <div class="nav-section-label">Withdraw</div>
+      <a class="nav-item" href="#withdraw-methods">Methods<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#withdraw-create">Create Withdraw<span class="nav-badge nb-post">POST</span></a>
+      <a class="nav-item" href="#withdraw-history">History<span class="nav-badge nb-get">GET</span></a>
+
+      <div class="nav-section-label">Withdraw Instant</div>
+      <a class="nav-item" href="#instant-withdraw-wallets">Wallets<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#instant-withdraw-products">Products<span class="nav-badge nb-get">GET</span></a>
+      <a class="nav-item" href="#instant-withdraw-create">Create Instant Withdraw<span class="nav-badge nb-post">POST</span></a>
+      <a class="nav-item" href="#instant-withdraw-history">History<span class="nav-badge nb-get">GET</span></a>
+
+      <div class="nav-section-label">Webhook</div>
+      <a class="nav-item" href="#webhook-intro"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Cara Kerja</a>
+      <a class="nav-item" href="#webhook-payload">Format Payload</a>
+      <a class="nav-item" href="#webhook-verify">Verifikasi Signature</a>
+
+      <div class="nav-section-label">Referensi</div>
+      <a class="nav-item" href="#errors"><span class="nav-icon"><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i></span> Error Codes</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span>Semua sistem normal</span>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <!-- ── Main (struktur SAMA seperti halaman lain) ── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">API Reference</div>
+      <div class="topbar-actions">
+        <div class="topbar-base">
+          <div class="topbar-base-dot"></div>
+          <span id="base-url-text">https://austinstore.id</span>
+        </div>
+        <button class="btn-icon" id="theme-toggle" title="Toggle tema"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="docs-container">
+
+      <!-- ── Hero ── -->
+      <div class="hero" id="intro">
+        <div class="hero-eyebrow"><i class="fas fa-code"></i> Documentation</div>
+        <h1>AustinPay API</h1>
+        <p class="hero-sub">REST API untuk integrasi deposit QRIS, withdraw e-wallet & bank, dan manajemen akun. Semua endpoint mengembalikan JSON dengan field <code style="color:var(--primary)">success</code> (boolean).</p>
+
+        <div class="hero-pills">
+          <span class="pill"><i class="fas fa-server"></i> Base URL: <code id="base-url-pill">https://austinstore.id</code></span>
+          <span class="pill"><i class="fas fa-exchange-alt"></i> Format: <code>application/json</code></span>
+          <span class="pill"><i class="fas fa-lock"></i> HTTPS only</span>
+        </div>
+      </div>
+
+      <!-- ── Autentikasi ── -->
+      <section class="docs-section" id="auth">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-key"></i></div>
+          <h2>Autentikasi</h2>
+        </div>
+        <p class="docs-section-desc"><code>/api/account</code>, <code>/api/dashboard</code>, dan <code>/api/transactions</code> murni Public API (wajib API Key + IP Whitelist). Endpoint <code>/api/deposit/*</code> dan <code>/api/withdraw/*</code> dipakai bersama oleh dashboard web (cookie/JWT dari login) dan Public API — server membedakan otomatis dari kredensial yang kamu kirim: sertakan API key (lihat langkah di bawah) untuk diperlakukan sebagai Public API, kalau tidak akan dianggap sesi web biasa.</p>
+
+        <div class="auth-step">
+          <div class="auth-step-n">1</div>
+          <div class="auth-step-content">
+            <h4>Buat API Key</h4>
+            <p>Masuk ke <a href="/profile" style="color:var(--primary)">Profil</a> → bagian <strong>API Key</strong> → klik <strong>Buat API Key</strong>. Key hanya ditampilkan satu kali — simpan baik-baik karena tidak bisa dilihat lagi setelah itu.</p>
+          </div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-n">2</div>
+          <div class="auth-step-content">
+            <h4>Daftarkan IP Whitelist</h4>
+            <p>Di halaman Profil, bagian <strong>Whitelist IP</strong>, tambahkan IP server/aplikasi yang akan memanggil API. Mendukung IP tunggal (<code style="color:var(--primary)">203.0.113.10</code>) atau CIDR (<code style="color:var(--primary)">203.0.113.0/24</code>). Request dari IP tidak terdaftar akan ditolak meski API key valid.</p>
+          </div>
+        </div>
+        <div class="auth-step">
+          <div class="auth-step-n">3</div>
+          <div class="auth-step-content">
+            <h4>Sertakan API Key di Setiap Request</h4>
+            <p>Kirim API key via query parameter <code style="color:var(--primary)">?apikey=</code> pada setiap request Public API. Header <code style="color:var(--primary)">X-API-Key</code> tetap didukung untuk integrasi backend lama.</p>
+          </div>
+        </div>
+
+        <div class="blk">Metode Pengiriman</div>
+        <div class="auth-methods">
+          <div class="auth-method-card">
+            <div class="amc-label">Query Param (Direkomendasikan)</div>
+            <code>?apikey=apg_live_xxx</code>
+          </div>
+          <div class="auth-method-card">
+            <div class="amc-label">Header (Legacy)</div>
+            <code>X-API-Key: apg_live_xxx</code>
+          </div>
+          <div class="auth-method-card">
+            <div class="amc-label">Bearer Token</div>
+            <code>Authorization: Bearer apg_live_xxx</code>
+          </div>
+        </div>
+
+        <div class="blk">Contoh Request</div>
+                <div class="reqtabs">
+          <button type="button" class="reqtab active" onclick="showReqTab(this,'authex-php')"><i class="fab fa-php"></i> PHP</button>
+          <button type="button" class="reqtab" onclick="showReqTab(this,'authex-js')"><i class="fab fa-js"></i> JavaScript</button>
+          <button type="button" class="reqtab" onclick="showReqTab(this,'authex-curl')"><i class="fas fa-terminal"></i> cURL</button>
+        </div>
+        <div class="reqpanel active" data-reqtab="authex-php">
+          <div class="code-wrap">
+            <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+            <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+          </div>
+        </div>
+        <div class="reqpanel" data-reqtab="authex-js">
+          <div class="code-wrap">
+            <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+            <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxx");
+const data = await res.json();
+console.log(data);</code></pre>
+          </div>
+        </div>
+        <div class="reqpanel" data-reqtab="authex-curl">
+          <div class="code-wrap">
+            <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+            <pre class="code-block"><code>curl "https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+          </div>
+        </div>
+
+        <div class="note note-warn" style="margin-top:16px">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Request Public API wajib memenuhi <strong>dua syarat sekaligus</strong>: API key valid &amp; aktif, <strong>dan</strong> IP pengirim ada di whitelist. Jika salah satu tidak terpenuhi → 401/403.</span>
+        </div>
+
+        <div class="auth-step" style="margin-top:24px">
+          <div class="auth-step-n">4</div>
+          <div class="auth-step-content">
+            <h4>(Opsional, direkomendasikan) HMAC Signature dengan API Secret</h4>
+            <p>Selain API key, kamu bisa generate <strong>API Secret</strong> di halaman <a href="/profile" style="color:var(--primary)">Profil</a> → bagian <strong>API Secret (HMAC Signature)</strong>. Begitu secret dibuat, setiap request Public API dari key ini <strong>wajib</strong> ditandatangani — request tanpa signature valid akan ditolak (401), walau API key &amp; IP whitelist-nya benar. Secret hanya ditampilkan satu kali saat dibuat/diganti.</p>
+          </div>
+        </div>
+
+        <div class="blk">Cara Menghitung Signature</div>
+        <p class="docs-section-desc">Gabungkan 4 bagian berikut dengan newline (<code style="color:var(--primary)">\n</code>), lalu HMAC-SHA256 memakai API secret sebagai key, hasilnya dalam bentuk hex:</p>
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+            <span class="code-lang">text</span>
+          </div>
+          <pre class="code-block"><code>METHOD (huruf besar, mis. POST)
+PATH (pathname murni, TANPA query string, mis. /api/deposit/create)
+BODY (raw JSON string persis seperti yang dikirim; string kosong "" kalau tidak ada body)
+TIMESTAMP (Date.now() dalam milidetik, dalam bentuk string)</code></pre>
+        </div>
+        <p class="docs-section-desc">Kirim hasilnya lewat header <code style="color:var(--primary)">X-Signature</code>, dan timestamp yang dipakai lewat header <code style="color:var(--primary)">X-Timestamp</code>. Server menolak request kalau selisih <code>X-Timestamp</code> dengan waktu server lebih dari <strong>5 menit</strong> (mencegah replay attack), atau kalau signature tidak cocok.</p>
+
+        <div class="blk">Contoh (Node.js)</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+            <span class="code-lang">javascript</span>
+            <button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+          </div>
+          <pre class="code-block"><code>import crypto from "node:crypto";
+
+function signRequest(method, path, body, secret) {
+  const timestamp = Date.now().toString();
+  const payload = `${method}\n${path}\n${body}\n${timestamp}`;
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return { timestamp, signature };
+}
+
+const path = "/api/deposit/create";
+const body = JSON.stringify({ amount: 50000, method: "qris" });
+const { timestamp, signature } = signRequest("POST", path, body, process.env.AUSTIN_API_SECRET);
+
+await fetch(`https://austinstore.id${path}`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": process.env.AUSTIN_API_KEY,
+    "X-Timestamp": timestamp,
+    "X-Signature": signature,
+  },
+  body,
+});</code></pre>
+        </div>
+
+        <div class="note note-warn" style="margin-top:16px">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Signature dihitung dari <strong>path murni</strong> (tanpa query string). Karena itu, kalau HMAC aktif, kirim API key lewat header <code>X-API-Key</code> — bukan <code>?apikey=</code> di URL — supaya path yang kamu tanda-tangani sama persis dengan yang diverifikasi server.</span>
+        </div>
+        <div class="note note-info">
+          <i class="fas fa-info-circle"></i>
+          <span>API key tidak pernah disimpan dalam bentuk asli di server — hanya hash-nya. Jika key hilang atau bocor, nonaktifkan dari halaman Profil dan buat key baru.</span>
+        </div>
+      </section>
+
+      <!-- ── Rate Limiting ── -->
+      <section class="docs-section" id="limits">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-shield-alt"></i></div>
+          <h2>Rate Limiting</h2>
+        </div>
+        <p class="docs-section-desc">Batasan request untuk menjaga kestabilan sistem dan mencegah penyalahgunaan.</p>
+        <table class="params-table">
+          <thead><tr><th>Endpoint</th><th>Limit</th><th>Window</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>/api/deposit/create</code></td>
+              <td class="p-type">5 req</td>
+              <td class="p-type">per menit</td>
+              <td class="p-desc">Per akun/API key. Throttle ketat untuk mencegah spam QRIS.</td>
+            </tr>
+            <tr>
+              <td>Endpoint Public API lainnya</td>
+              <td class="p-type">300 req</td>
+              <td class="p-type">per menit</td>
+              <td class="p-desc">Default rate limit per API key. Lewat batas ini request ditolak 429 (key tetap aktif); key baru dinonaktifkan otomatis jika mencapai ~3x lipat batas (indikasi abuse).</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note note-warn" style="margin-top:14px">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Melampaui rate limit akan mengembalikan <code>429 Too Many Requests</code>. Implementasikan exponential backoff sebelum retry.</span>
+        </div>
+      </section>
+
+      <!-- ── USER ── -->
+      <section class="docs-section" id="user">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-user"></i></div>
+          <h2>User</h2>
+        </div>
+        <p class="docs-section-desc">Informasi akun dan riwayat transaksi pemilik API key.</p>
+
+        <!-- GET /api/account -->
+        <div class="endpoint" id="user-account">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/account</span>
+              <button type="button" class="copy-path-btn" data-path="/api/account"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Info lengkap akun pemilik API key — username, email, role, status, dan saldo wallet.</p>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'acct-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'acct-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'acct-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="acct-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="acct-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="acct-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/account?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"user":{"id":"uuid","username":"austi","email":"austi@example.com","role":"user","status":"active","wallet":{"balance":150000}}}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/transactions -->
+        <div class="endpoint" id="user-transactions">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/transactions</span>
+              <button type="button" class="copy-path-btn" data-path="/api/transactions"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Riwayat semua transaksi dengan pagination dan filter.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>page</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 1</td></tr>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 10, Maks: 50</td></tr>
+                <tr><td><code>type</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>deposit</code> / <code>withdraw</code> / <code>adjustment</code></td></tr>
+                <tr><td><code>status</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>pending</code> / <code>success</code> / <code>failed</code></td></tr>
+                <tr><td><code>date_from</code></td><td class="p-type">date</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Format <code>YYYY-MM-DD</code></td></tr>
+                <tr><td><code>date_to</code></td><td class="p-type">date</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Format <code>YYYY-MM-DD</code></td></tr>
+              </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'txlist-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'txlist-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'txlist-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="txlist-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/transactions?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&page=1&limit=10",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="txlist-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  page: 1,
+  limit: 10
+});
+const res = await fetch(`https://austinstore.id/api/transactions?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="txlist-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/transactions?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&amp;page=1&amp;limit=10"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","type":"deposit","amount":50000,"status":"success","created_at":"2026-06-27T10:00:00Z"}],"meta":{"page":1,"limit":10,"total":42,"totalPages":5}}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/mutasi -->
+        <div class="endpoint" id="user-mutasi">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/mutasi</span>
+              <button type="button" class="copy-path-btn" data-path="/api/mutasi"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Riwayat mutasi ShopeePay yang diterima akunmu, dengan pagination dan filter. Hanya mutasi dari akun ShopeePay milikmu yang bisa dibaca.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>page</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 1</td></tr>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 20, Maks: 100</td></tr>
+                <tr><td><code>account_id</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Filter per akun ShopeePay (id dari <code>/api/mutasi/accounts</code>)</td></tr>
+                <tr><td><code>type</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>CREDIT</code> (masuk) / <code>DEBIT</code> (keluar)</td></tr>
+                <tr><td><code>from</code></td><td class="p-type">date</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Format <code>YYYY-MM-DD</code> (WIB)</td></tr>
+                <tr><td><code>to</code></td><td class="p-type">date</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Format <code>YYYY-MM-DD</code> (WIB)</td></tr>
+                <tr><td><code>q</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Cari di keterangan / nominal</td></tr>
+                </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code>curl "https://austinstore.id/api/mutasi?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&amp;type=CREDIT&amp;page=1&amp;limit=20"</code></pre>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","account_ref":"uuid","account_name":"Toko Saya","merchant_id":"123456","type":"CREDIT","amount":25000,"description":"Pembayaran QR","balance":null,"fee":125,"fee_status":"paid","mutasi_at":"2026-07-08T03:42:00.000Z","received_at":"2026-07-08T03:42:03.000Z"}],"total":42,"page":1,"limit":20,"pages":3,"summary":{"count":42,"credit":1250000,"debit":300000}}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/mutasi/latest -->
+        <div class="endpoint" id="user-mutasi-latest">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/mutasi/latest</span>
+              <button type="button" class="copy-path-btn" data-path="/api/mutasi/latest"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Mutasi terbaru (maks 50), cocok untuk polling. Kirim <code>since</code> berisi <code>server_time</code> dari response sebelumnya supaya hanya mutasi baru yang dikembalikan.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 20, Maks: 50</td></tr>
+                <tr><td><code>account_id</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Filter per akun ShopeePay</td></tr>
+                <tr><td><code>since</code></td><td class="p-type">datetime</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">ISO 8601, hanya mutasi yang diterima setelah waktu ini</td></tr>
+                </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code>curl "https://austinstore.id/api/mutasi/latest?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&amp;limit=10"</code></pre>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","account_ref":"uuid","account_name":"Toko Saya","merchant_id":"123456","type":"CREDIT","amount":25000,"description":"Pembayaran QR","balance":null,"fee":125,"fee_status":"paid","mutasi_at":"2026-07-08T03:42:00.000Z","received_at":"2026-07-08T03:42:03.000Z"}],"server_time":"2026-07-08T03:45:00.000Z"}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/mutasi/accounts -->
+        <div class="endpoint" id="user-mutasi-accounts">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/mutasi/accounts</span>
+              <button type="button" class="copy-path-btn" data-path="/api/mutasi/accounts"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Daftar akun ShopeePay yang terhubung beserta ringkasan mutasi hari ini.</p>
+            
+            <div class="blk">Contoh Request</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code>curl "https://austinstore.id/api/mutasi/accounts?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","phone":"08123456789","account_name":"Toko Saya","merchant_id":"123456","merchant_label":"Toko Saya","store_label":"Outlet 1","status":"active","total_mutations":42,"total_credit":1250000,"last_mutation_at":"2026-07-08T03:42:03.000Z","today":{"count":3,"credit":75000,"debit":0}}]}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── DEPOSIT ── -->
+      <section class="docs-section" id="deposit">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-download"></i></div>
+          <h2>Deposit</h2>
+        </div>
+
+        <div class="note note-info" style="margin-bottom:16px">
+          <i class="fas fa-info-circle"></i>
+          <span>Masa berlaku QR mengikuti pengaturan di sisi admin, tapi field <code>expired_at</code> yang kamu terima selalu akurat untuk QR yang baru dibuat.</span>
+        </div>
+
+        <!-- POST /api/deposit/create -->
+        <div class="endpoint" id="deposit-create">
+          <div class="endpoint-head">
+            <span class="method-badge mb-post">POST</span>
+            <div class="path-row">
+              <span class="path-text">/api/deposit/create</span>
+              <button type="button" class="copy-path-btn" data-path="/api/deposit/create"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Generate QRIS dinamis untuk deposit saldo. Dibatasi <strong>5 request/menit</strong>. Setelah QRIS dibuat, polling <code>GET /deposit/check/:id</code> dengan interval minimal 5 detik.</p>
+            <div class="blk">Request Body</div>
+            <table class="params-table">
+              <thead><tr><th>Field</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>amount</code> <span class="p-req">wajib</span></td><td class="p-type">integer</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Nominal sebelum fee. Batas minimal/maksimal mengikuti pengaturan admin.</td></tr>
+              </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'depcreate-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcreate-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcreate-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="depcreate-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/deposit/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_HTTPHEADER     =&gt; ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     =&gt; json_encode([
+        "amount" =&gt; 50000,
+    ]),
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcreate-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/deposit/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ amount: 50000 })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcreate-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/deposit/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 50000}'</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"deposit":{"id":"uuid","transaction_id":"APG-A1B2C3D4","amount":50200,"unique_code":0,"fee":200,"qr_string":"00020101021226610016ID.CO.SHOPEE.WWW...6304XXXX","qr_image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...","expired_at":"2026-06-27T10:20:00.000Z","status":"pending"}}</code></pre>
+            </div>
+            <div class="note note-info">
+              <i class="fas fa-info-circle"></i>
+              <span><code>amount</code> pada response sudah termasuk <code>fee</code> (0,4%) dan <code>unique_code</code> (0 secara default; menjadi 1, 2, dst. hanya jika nominal total sama dengan deposit lain yang sedang pending). Pastikan user membayar tepat sejumlah <code>amount</code> ini via QRIS. <code>qr_image</code> selalu base64 data URL yang di-generate di server kami, bukan URL gambar hosted eksternal.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/deposit/check/:id -->
+        <div class="endpoint" id="deposit-check">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/deposit/check/:transactionId</span>
+              <button type="button" class="copy-path-btn" data-path="/api/deposit/check/:transactionId"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Polling status pembayaran QRIS secara real-time. Jika status <code>paid</code>, saldo wallet otomatis ditambahkan. Lakukan polling dengan interval minimal <strong>5 detik</strong>.</p>
+                        <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'depcheck-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcheck-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcheck-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="depcheck-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/deposit/check/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcheck-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/deposit/check/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcheck-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/deposit/check/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="rtabs">
+              <button type="button" class="rtab active" onclick="showTab(this,'paid')">✅ Paid</button>
+              <button type="button" class="rtab" onclick="showTab(this,'pending')">⏳ Pending</button>
+              <button type="button" class="rtab" onclick="showTab(this,'expired2')">❌ Expired</button>
+            </div>
+            <div class="rpanel active" data-tab="paid">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code data-json>{"success":true,"status":"paid","message":"Deposit berhasil! Saldo telah ditambahkan."}</code></pre>
+              </div>
+            </div>
+            <div class="rpanel" data-tab="pending">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code data-json>{"success":true,"status":"pending","message":"Menunggu pembayaran..."}</code></pre>
+              </div>
+            </div>
+            <div class="rpanel" data-tab="expired2">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code data-json>{"success":true,"status":"expired","message":"QRIS telah kadaluarsa."}</code></pre>
+              </div>
+            </div>
+            <div class="status-grid">
+              <span class="s-badge s-paid">paid</span>
+              <span class="s-badge s-pending">pending</span>
+              <span class="s-badge s-expired">expired</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- POST /api/deposit/cancel/:id -->
+        <div class="endpoint" id="deposit-cancel">
+          <div class="endpoint-head">
+            <span class="method-badge mb-post">POST</span>
+            <div class="path-row">
+              <span class="path-text">/api/deposit/cancel/:transactionId</span>
+              <button type="button" class="copy-path-btn" data-path="/api/deposit/cancel/:transactionId"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Batalkan deposit QRIS yang masih berstatus <code>pending</code>. Deposit yang sudah <code>paid</code>, <code>expired</code>, atau sudah dibatalkan sebelumnya tidak bisa dibatalkan ulang.</p>
+            <div class="blk">Path Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>transactionId</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">ID transaksi yang didapat dari response <code>POST /deposit/create</code>.</td></tr>
+              </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'depcancel-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcancel-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'depcancel-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="depcancel-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/deposit/cancel/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcancel-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/deposit/cancel/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST"
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="depcancel-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/deposit/cancel/APG-1751000000?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="rtabs">
+              <button type="button" class="rtab active" onclick="showTab(this,'cancelOk')">✅ Berhasil</button>
+              <button type="button" class="rtab" onclick="showTab(this,'cancelFail')">❌ Tidak Bisa Dibatalkan</button>
+            </div>
+            <div class="rpanel active" data-tab="cancelOk">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code data-json>{"success":true,"status":"cancel","message":"Deposit berhasil dibatalkan"}</code></pre>
+              </div>
+            </div>
+            <div class="rpanel" data-tab="cancelFail">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code data-json>{"success":false,"message":"Deposit tidak bisa dibatalkan (status: paid)"}</code></pre>
+              </div>
+            </div>
+            <div class="note note-warn">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Bersifat atomik terhadap proses pembayaran — jika deposit kebetulan baru saja lunas (dibayar user / webhook masuk) tepat sebelum request cancel diproses, pembatalan akan ditolak dan saldo tetap dikreditkan.</span>
+            </div>
+            <div class="note note-warn">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Deposit QRIS memakai QRIS statis yang <strong>tidak punya endpoint pembatalan di sisi provider</strong>, jadi cancel di sini hanya menghentikan status di sistem kami — QR code fisiknya <strong>tetap bisa dipindai &amp; dibayar</strong> sampai masa berlaku aslinya habis (maksimal 5 menit sejak dibuat). Kalau tetap dibayar setelah dibatalkan, dana tetap masuk ke rekening penerima tapi <strong>tidak otomatis dikreditkan ke wallet manapun</strong> — akan tercatat sebagai orphan mutasi untuk direkonsiliasi manual oleh admin, plus notifikasi Telegram otomatis.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/deposit/history -->
+        <div class="endpoint" id="deposit-history">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/deposit/history</span>
+              <button type="button" class="copy-path-btn" data-path="/api/deposit/history"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>page</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 1</td></tr>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 10, Maks: 50</td></tr>
+                <tr><td><code>status</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>pending</code> / <code>paid</code> / <code>expired</code></td></tr>
+                <tr><td><code>search</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Cari berdasar transaction_id</td></tr>
+              </tbody>
+            </table>
+                        <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'dephist-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'dephist-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'dephist-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="dephist-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/deposit/history?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&page=1",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="dephist-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  page: 1
+});
+const res = await fetch(`https://austinstore.id/api/deposit/history?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="dephist-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/deposit/history?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&amp;page=1"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","transaction_id":"APG-1751000000","amount":50001,"fee":1500,"status":"paid","expired_at":"2026-06-27T10:15:00.000Z","paid_at":"2026-06-27T10:03:12.000Z","createdAt":"2026-06-27T10:00:00.000Z","updatedAt":"2026-06-27T10:03:12.000Z"}],"total":5,"page":1,"limit":10,"pages":1}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── WITHDRAW ── -->
+      <section class="docs-section" id="withdraw">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-upload"></i></div>
+          <h2>Withdraw</h2>
+        </div>
+        <p class="docs-section-desc">Penarikan saldo ke e-wallet atau rekening bank. Saldo dipotong saat request dibuat dan dikembalikan jika ditolak admin.</p>
+
+        <!-- GET /api/withdraw/methods -->
+        <div class="endpoint" id="withdraw-methods">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/withdraw/methods</span>
+              <button type="button" class="copy-path-btn" data-path="/api/withdraw/methods"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Daftar semua metode withdraw yang tersedia beserta fee masing-masing.</p>
+                        <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'wdmethods-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'wdmethods-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'wdmethods-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="wdmethods-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/withdraw/methods?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="wdmethods-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/withdraw/methods?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="wdmethods-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/withdraw/methods?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"methods":["Dana","GoPay","OVO","ShopeePay","LinkAja","BRI","BCA","Mandiri","BNI","BSI","CIMB"]}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- POST /api/withdraw/create -->
+        <div class="endpoint" id="withdraw-create">
+          <div class="endpoint-head">
+            <span class="method-badge mb-post">POST</span>
+            <div class="path-row">
+              <span class="path-text">/api/withdraw/create</span>
+              <button type="button" class="copy-path-btn" data-path="/api/withdraw/create"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Buat request withdraw baru. Saldo langsung dipotong (amount + fee) saat request dibuat, status <code>pending</code> menunggu approval admin. Jika ditolak, saldo dikembalikan otomatis.</p>
+            <div class="blk">Request Body</div>
+            <table class="params-table">
+              <thead><tr><th>Field</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>amount</code> <span class="p-req">wajib</span></td><td class="p-type">integer</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Tanpa nominal minimal, harus lebih dari 0</td></tr>
+                <tr><td><code>method</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Salah satu dari daftar methods, contoh: <code>Dana</code></td></tr>
+                <tr><td><code>account_number</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Nomor HP / nomor rekening tujuan</td></tr>
+                <tr><td><code>account_name</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Nama pemilik akun tujuan</td></tr>
+                <tr><td><code>note</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Catatan tambahan untuk admin</td></tr>
+              </tbody>
+            </table>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'wdcreate-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'wdcreate-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'wdcreate-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="wdcreate-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_HTTPHEADER     =&gt; ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     =&gt; json_encode([
+        "amount"         =&gt; 100000,
+        "method"         =&gt; "Dana",
+        "account_number" =&gt; "081234567890",
+        "account_name"   =&gt; "Muhlis Akbar",
+        "note"           =&gt; "Withdraw gaji",
+    ]),
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="wdcreate-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    amount: 100000,
+    method: "Dana",
+    account_number: "081234567890",
+    account_name: "Muhlis Akbar",
+    note: "Withdraw gaji"
+  })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="wdcreate-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 100000, "method": "Dana", "account_number": "081234567890", "account_name": "Muhlis Akbar", "note": "Withdraw gaji"}'</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"message":"Request withdraw berhasil dikirim. Menunggu persetujuan admin.","withdraw_id":"uuid"}</code></pre>
+            </div>
+            <div class="note note-warn">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Gunakan <code>GET /withdraw/methods</code> untuk mendapatkan daftar method yang valid sebelum membuat request withdraw. Request dengan method tidak valid akan ditolak dengan 400.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/withdraw/history -->
+        <div class="endpoint" id="withdraw-history">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/withdraw/history</span>
+              <button type="button" class="copy-path-btn" data-path="/api/withdraw/history"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Riwayat semua request withdraw milik akun.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>page</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 1</td></tr>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 10</td></tr>
+                <tr><td><code>status</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>pending</code> / <code>success</code> / <code>rejected</code></td></tr>
+              </tbody>
+            </table>
+            <div class="status-grid" style="margin-top:10px">
+              <span class="s-badge s-pending">pending</span>
+              <span class="s-badge s-success">success</span>
+              <span class="s-badge s-rejected">rejected</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── WITHDRAW INSTANT ── -->
+      <section class="docs-section" id="withdraw-instant-intro">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-bolt"></i></div>
+          <h2>Withdraw Instant</h2>
+        </div>
+        <p class="docs-section-desc">Penarikan saldo langsung ke e-wallet atau Virtual Account bank tanpa menunggu approval admin — saldo dipotong dan dana dikirim otomatis lewat provider secara real-time. Ada 2 tipe produk per wallet, dibedakan lewat flag <code>open_denom</code> di <a href="#instant-withdraw-products">Products</a>: <strong>Nominal Tetap</strong> (pilih dari katalog harga siap pakai) dan <strong>Bebas Nominal</strong> (tentukan sendiri nominalnya, dalam batas min–max).</p>
+        <div class="note note-warn">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Karena tanpa approval manual dan tanpa verifikasi PIN untuk request via API key, jaga kerahasiaan API key kamu dan aktifkan IP Whitelist di menu <a href="/webhook">Keamanan</a> dashboard.</span>
+        </div>
+
+        <!-- GET /api/instant-withdraw/wallets -->
+        <div class="endpoint" id="instant-withdraw-wallets">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/instant-withdraw/wallets</span>
+              <button type="button" class="copy-path-btn" data-path="/api/instant-withdraw/wallets"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Daftar wallet yang tersedia untuk withdraw instant dari provider yang sedang aktif, lengkap dengan tipe nomor tujuan dan tipe nominal yang didukung tiap wallet.</p>
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwwallets-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwwallets-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwwallets-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwwallets-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/wallets?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwwallets-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/instant-withdraw/wallets?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwwallets-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/instant-withdraw/wallets?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"wallets":["DANA","GoPay","ShopeePay","LinkAja","iSaku","Doku","Kaspro","AstraPay","Mandiri","BNI","BRI","CIMB","Permata"],"wallet_types":{"DANA":"phone","GoPay":"phone","ShopeePay":"phone","Mandiri":"va","BNI":"va"},"wallet_has_fixed":{"DANA":true,"GoPay":true,"ShopeePay":false,"Mandiri":false},"wallet_has_open_denom":{"DANA":true,"GoPay":true,"ShopeePay":true,"Mandiri":true}}</code></pre>
+            </div>
+            <div class="note note-info">
+              <i class="fas fa-info-circle"></i>
+              <span>
+                <code>wallet_types</code>: <code>phone</code> = nomor tujuan berupa nomor HP e-wallet, <code>va</code> = nomor tujuan berupa Nomor Virtual Account bank (Mandiri/BNI/BRI/CIMB/Permata).<br>
+                <code>wallet_has_fixed</code>: wallet itu punya katalog nominal tetap (baru <code>DANA</code> &amp; <code>GoPay</code> yang punya ini — wallet lain <code>false</code>).<br>
+                <code>wallet_has_open_denom</code>: wallet itu bisa dipakai untuk Bebas Nominal. Wallet e-wallet lain (ShopeePay/LinkAja/iSaku/Doku/Kaspro/AstraPay) dan semua Virtual Account bank <strong>hanya</strong> punya jalur Bebas Nominal — <code>wallet_has_fixed</code>-nya selalu <code>false</code>.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/instant-withdraw/products -->
+        <div class="endpoint" id="instant-withdraw-products">
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/instant-withdraw/products</span>
+              <button type="button" class="copy-path-btn" data-path="/api/instant-withdraw/products"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Daftar produk yang tersedia untuk sebuah wallet — gabungan katalog Nominal Tetap (kalau ada) dan 1 item Bebas Nominal (kalau wallet-nya mendukung). Cek field <code>open_denom</code> tiap item untuk tahu cara pakainya di <a href="#instant-withdraw-create">Create</a>.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>wallet</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Salah satu dari <a href="#instant-withdraw-wallets">wallets</a>, contoh: <code>DANA</code></td></tr>
+              </tbody>
+            </table>
+
+            <div class="blk">Contoh Request — wallet dengan Nominal Tetap (DANA / GoPay)</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwprod-fixed-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-fixed-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-fixed-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwprod-fixed-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/products?wallet=DANA&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-fixed-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  wallet: "DANA",
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+});
+const res = await fetch(`https://austinstore.id/api/instant-withdraw/products?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-fixed-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/instant-withdraw/products?wallet=DANA&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"products":[
+  {"code":"D1","name":"DANA 1.000","open_denom":false,"destination_type":"phone","nominal":1000,"cost_price":1050,"sell_price":1550},
+  {"code":"D10","name":"DANA 10.000","open_denom":false,"destination_type":"phone","nominal":10000,"cost_price":10050,"sell_price":10550},
+  {"code":"BBSDN","name":"DANA (Bebas Nominal)","open_denom":true,"destination_type":"phone","min":100,"max":10000000,"fee":50,"nominal":null,"cost_price":null,"sell_price":null}
+]}</code></pre>
+            </div>
+
+            <div class="blk">Contoh Request — wallet Bebas Nominal saja (ShopeePay, LinkAja, iSaku, Doku, Kaspro/KAI Pay, AstraPay)</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwprod-open-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-open-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-open-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwprod-open-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/products?wallet=ShopeePay&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-open-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  wallet: "ShopeePay",
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+});
+const res = await fetch(`https://austinstore.id/api/instant-withdraw/products?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-open-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/instant-withdraw/products?wallet=ShopeePay&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"products":[
+  {"code":"BBSSH","name":"ShopeePay (Bebas Nominal)","open_denom":true,"destination_type":"phone","min":100,"max":10000000,"fee":500,"nominal":null,"cost_price":null,"sell_price":null}
+]}</code></pre>
+            </div>
+
+            <div class="blk">Contoh Request — Virtual Account bank (Mandiri, BNI, BRI, CIMB, Permata)</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwprod-va-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-va-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwprod-va-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwprod-va-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/products?wallet=Mandiri&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-va-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  wallet: "Mandiri",
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+});
+const res = await fetch(`https://austinstore.id/api/instant-withdraw/products?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwprod-va-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/instant-withdraw/products?wallet=Mandiri&apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"products":[
+  {"code":"BBSVAMDR","name":"Virtual Account Mandiri (Bebas Nominal)","open_denom":true,"destination_type":"va","min":100,"max":10000000,"fee":2001,"nominal":null,"cost_price":null,"sell_price":null}
+]}</code></pre>
+            </div>
+            <div class="note note-info">
+              <i class="fas fa-info-circle"></i>
+              <span>Untuk item <code>open_denom:false</code>, <code>sell_price</code> di response inilah harga potong saldo final — langsung pakai <code>code</code>-nya di <a href="#instant-withdraw-create">Create</a>. Untuk item <code>open_denom:true</code>, <code>sell_price</code> masih <code>null</code> karena harganya baru dihitung server saat <a href="#instant-withdraw-create">Create</a> dipanggil (tergantung <code>nominal</code> yang kamu kirim) — <code>min</code>/<code>max</code>/<code>fee</code> di sini cuma referensi.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- POST /api/instant-withdraw/create -->
+        <div class="endpoint" id="instant-withdraw-create">
+          <div class="endpoint-head">
+            <span class="method-badge mb-post">POST</span>
+            <div class="path-row">
+              <span class="path-text">/api/instant-withdraw/create</span>
+              <button type="button" class="copy-path-btn" data-path="/api/instant-withdraw/create"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Buat request withdraw instant. Saldo dipotong sesuai <code>sell_price</code> produk (nominal tetap) atau hasil kalkulasi <code>nominal + fee + margin</code> (Bebas Nominal) begitu request dibuat, lalu dieksekusi langsung ke provider — tidak ada tahap approval admin. Status akhir bisa langsung <code>success</code>, atau <code>processing</code> menyusul untuk provider yang async (lihat <a href="#instant-withdraw-history">History</a> untuk update terbaru). Jika provider menolak, saldo dikembalikan otomatis.</p>
+
+            <div class="blk">Request Body</div>
+            <table class="params-table">
+              <thead><tr><th>Field</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>wallet</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Salah satu dari <a href="#instant-withdraw-wallets">wallets</a>, contoh: <code>DANA</code></td></tr>
+                <tr><td><code>product_code</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Kode dari <a href="#instant-withdraw-products">Products</a> — nominal tetap (mis. <code>D10</code>) atau kode Bebas Nominal (mis. <code>BBSDN</code>)</td></tr>
+                <tr><td><code>phone</code> <span class="p-req">wajib</span></td><td class="p-type">string</td><td><span style="color:var(--danger);font-size:11px;font-weight:600">Required</span></td><td class="p-desc">Nomor HP e-wallet tujuan, atau Nomor Virtual Account kalau <code>destination_type</code> wallet-nya <code>va</code></td></tr>
+                <tr><td><code>nominal</code></td><td class="p-type">integer</td><td><span class="p-opt">Wajib untuk Bebas Nominal</span></td><td class="p-desc">Hanya dipakai kalau <code>product_code</code> adalah produk <code>open_denom:true</code>. Harus di antara <code>min</code>–<code>max</code> produk tersebut (umumnya Rp100 – Rp10.000.000). Diabaikan untuk produk nominal tetap.</td></tr>
+              </tbody>
+            </table>
+
+            <div class="blk">Contoh Request — Nominal Tetap (DANA/GoPay)</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwcreate-fixed-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-fixed-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-fixed-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwcreate-fixed-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_HTTPHEADER     =&gt; ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     =&gt; json_encode([
+        "wallet"       =&gt; "DANA",
+        "product_code" =&gt; "D10",
+        "phone"        =&gt; "081234567890",
+    ]),
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-fixed-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    wallet: "DANA",
+    product_code: "D10",
+    phone: "081234567890"
+  })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-fixed-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"wallet": "DANA", "product_code": "D10", "phone": "081234567890"}'</code></pre>
+              </div>
+            </div>
+
+            <div class="blk">Contoh Request — Bebas Nominal (e-wallet, mis. DANA/ShopeePay/dst)</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwcreate-open-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-open-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-open-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwcreate-open-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_HTTPHEADER     =&gt; ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     =&gt; json_encode([
+        "wallet"       =&gt; "DANA",
+        "product_code" =&gt; "BBSDN",
+        "phone"        =&gt; "081234567890",
+        "nominal"      =&gt; 75000,
+    ]),
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-open-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    wallet: "DANA",
+    product_code: "BBSDN",
+    phone: "081234567890",
+    nominal: 75000
+  })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-open-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"wallet": "DANA", "product_code": "BBSDN", "phone": "081234567890", "nominal": 75000}'</code></pre>
+              </div>
+            </div>
+
+            <div class="blk">Contoh Request — Bebas Nominal Virtual Account bank</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwcreate-va-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-va-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwcreate-va-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwcreate-va-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_CUSTOMREQUEST  =&gt; "POST",
+    CURLOPT_TIMEOUT        =&gt; 30,
+    CURLOPT_HTTPHEADER     =&gt; ["Content-Type: application/json"],
+    CURLOPT_POSTFIELDS     =&gt; json_encode([
+        "wallet"       =&gt; "Mandiri",
+        "product_code" =&gt; "BBSVAMDR",
+        "phone"        =&gt; "8887001234567890",
+        "nominal"      =&gt; 250000,
+    ]),
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-va-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const res = await fetch("https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    wallet: "Mandiri",
+    product_code: "BBSVAMDR",
+    phone: "8887001234567890",
+    nominal: 250000
+  })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwcreate-va-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl -X POST "https://austinstore.id/api/instant-withdraw/create?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"wallet": "Mandiri", "product_code": "BBSVAMDR", "phone": "8887001234567890", "nominal": 250000}'</code></pre>
+              </div>
+            </div>
+
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"message":"Transfer berhasil dikirim ke e-wallet tujuan","status":"success","id":"uuid"}</code></pre>
+            </div>
+            <div class="blk">Response — Error Umum</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":false,"message":"Nominal harus antara Rp100 - Rp10.000.000"}</code></pre>
+            </div>
+            <div class="note note-warn">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Selalu cek <a href="#instant-withdraw-products">Products</a> dulu untuk tahu apakah <code>product_code</code> yang dipilih itu <code>open_denom:true</code> (butuh field <code>nominal</code>) atau <code>false</code> (harga sudah tetap, <code>nominal</code> diabaikan kalau dikirim). Format <code>phone</code> divalidasi beda tergantung <code>destination_type</code> wallet: nomor HP diawali <code>0</code> untuk e-wallet, format bebas 5–20 digit untuk Virtual Account. Verifikasi PIN dilewati untuk request via API key (PIN hanya berlaku untuk sesi dashboard web).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET /api/instant-withdraw/history -->
+        <div class="endpoint" id="instant-withdraw-history">
+
+          <div class="endpoint-head">
+            <span class="method-badge mb-get">GET</span>
+            <div class="path-row">
+              <span class="path-text">/api/instant-withdraw/history</span>
+              <button type="button" class="copy-path-btn" data-path="/api/instant-withdraw/history"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <span class="auth-label al-apikey"><i class="fas fa-key"></i> API Key</span>
+            <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+          </div>
+          <div class="endpoint-body">
+            <p class="ep-desc">Riwayat semua request withdraw instant milik akun. Transaksi berstatus <code>processing</code> otomatis di-sync ke provider dulu sebelum data dikembalikan.</p>
+            <div class="blk">Query Parameters</div>
+            <table class="params-table">
+              <thead><tr><th>Parameter</th><th>Tipe</th><th>Status</th><th>Deskripsi</th></tr></thead>
+              <tbody>
+                <tr><td><code>page</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 1</td></tr>
+                <tr><td><code>limit</code></td><td class="p-type">integer</td><td><span class="p-opt">Opsional</span></td><td class="p-desc">Default: 10</td></tr>
+                <tr><td><code>status</code></td><td class="p-type">string</td><td><span class="p-opt">Opsional</span></td><td class="p-desc"><code>processing</code> / <code>success</code> / <code>failed</code></td></tr>
+              </tbody>
+            </table>
+            <div class="status-grid" style="margin-top:10px">
+              <span class="s-badge s-pending">processing</span>
+              <span class="s-badge s-success">success</span>
+              <span class="s-badge s-rejected">failed</span>
+            </div>
+
+            <div class="blk">Contoh Request</div>
+            <div class="reqtabs">
+              <button type="button" class="reqtab active" onclick="showReqTab(this,'iwhist-php')"><i class="fab fa-php"></i> PHP</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwhist-js')"><i class="fab fa-js"></i> JavaScript</button>
+              <button type="button" class="reqtab" onclick="showReqTab(this,'iwhist-curl')"><i class="fas fa-terminal"></i> cURL</button>
+            </div>
+            <div class="reqpanel active" data-reqtab="iwhist-php">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">php</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL            =&gt; "https://austinstore.id/api/instant-withdraw/history?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&page=1&status=success",
+    CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_TIMEOUT        =&gt; 30,
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+$hasil = json_decode($response, true);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwhist-js">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>const params = new URLSearchParams({
+  apikey: "apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  page: 1,
+  status: "success"
+});
+const res = await fetch(`https://austinstore.id/api/instant-withdraw/history?${params}`);
+const data = await res.json();
+console.log(data);</code></pre>
+              </div>
+            </div>
+            <div class="reqpanel" data-reqtab="iwhist-curl">
+              <div class="code-wrap">
+                <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">curl</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+                <pre class="code-block"><code>curl "https://austinstore.id/api/instant-withdraw/history?apikey=apg_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&amp;page=1&amp;status=success"</code></pre>
+              </div>
+            </div>
+            <div class="blk">Response</div>
+            <div class="code-wrap">
+              <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+              <pre class="code-block"><code data-json>{"success":true,"data":[{"id":"uuid","user_id":"uuid","provider":"okeconnect","wallet":"DANA","phone":"081234567890","product_code":"D10","product_name":"DANA 10.000","nominal":10000,"cost_price":10050,"sell_price":10550,"status":"success","provider_response":"Transaksi berhasil diproses","createdAt":"2026-07-08T03:38:35.000Z","updatedAt":"2026-07-08T03:38:41.000Z"},{"id":"uuid","user_id":"uuid","provider":"vip","wallet":"ShopeePay","phone":"081298765432","product_code":"BBSSH","product_name":"ShopeePay (Bebas Nominal)","nominal":75000,"cost_price":75500,"sell_price":75650,"status":"processing","provider_response":null,"createdAt":"2026-07-08T02:10:12.000Z","updatedAt":"2026-07-08T02:10:15.000Z"}],"total":14,"page":1,"limit":10,"pages":2}</code></pre>
+            </div>
+            <div class="note note-info">
+              <i class="fas fa-info-circle"></i>
+              <span>Transaksi <code>status:"processing"</code> otomatis di-sync ke provider setiap kali endpoint ini dipanggil, jadi <code>status</code>/<code>provider_response</code>-nya bisa saja sudah berubah jadi <code>success</code>/<code>failed</code> di response dibanding request sebelumnya — tidak perlu polling manual ke provider lain.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── WEBHOOK ── -->
+      <section class="docs-section" id="webhook-intro">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-satellite-dish"></i></div>
+          <h2>Webhook</h2>
+        </div>
+        <p class="docs-section-desc">Alih-alih terus-menerus polling <code>GET /deposit/check/:id</code>, kamu bisa mendaftarkan URL server sendiri lewat menu <a href="/webhook">Webhook</a> di dashboard. AustinPay akan mengirim <b>POST</b> ke URL itu secara real-time setiap kali salah satu event di bawah terjadi.</p>
+
+        <div class="note note-info">
+          <i class="fas fa-info-circle"></i>
+          <span>Server tujuan wajib membalas HTTP <code>2xx</code> dalam 10 detik. Kalau gagal atau timeout, AustinPay otomatis retry hingga 3 kali dengan jeda 1–3 detik antar percobaan.</span>
+        </div>
+
+        <div class="blk">Daftar Event</div>
+        <table class="params-table">
+          <thead><tr><th>Event</th><th>Terpicu Saat</th></tr></thead>
+          <tbody>
+            <tr><td><code>deposit.paid</code></td><td class="p-desc">QRIS deposit berhasil lunas (baik terdeteksi lewat polling maupun webhook gateway)</td></tr>
+            <tr><td><code>withdraw.approved</code></td><td class="p-desc">Request withdraw disetujui admin</td></tr>
+            <tr><td><code>withdraw.rejected</code></td><td class="p-desc">Request withdraw ditolak admin (saldo otomatis dikembalikan)</td></tr>
+            <tr><td><code>mutasi.shopee</code></td><td class="p-desc">Mutasi baru masuk/keluar di akun ShopeePay yang kamu hubungkan (payload: <code>mutationId</code>, <code>type</code>, <code>amount</code>, <code>description</code>, <code>balance</code>, <code>fee</code>, <code>mutationAt</code>, dst.)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="docs-section" id="webhook-payload">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-file-code"></i></div>
+          <h2>Format Payload</h2>
+        </div>
+        <p class="docs-section-desc">Setiap request dikirim sebagai <code>Content-Type: application/json</code>, dibungkus dalam amplop yang sama untuk semua event:</p>
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · deposit.paid</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+          <pre class="code-block"><code data-json>{"event":"deposit.paid","data":{"transactionId":"APG-1751000000","amount":55000,"status":"paid","paidAt":"2026-07-08T03:38:35.000Z"},"sentAt":"2026-07-08T03:38:35.512Z"}</code></pre>
+        </div>
+        <div class="blk">Header yang Dikirim</div>
+        <table class="params-table">
+          <thead><tr><th>Header</th><th>Deskripsi</th></tr></thead>
+          <tbody>
+            <tr><td><code>X-AustinPay-Event</code></td><td class="p-desc">Nama event, sama dengan field <code>event</code> di body</td></tr>
+            <tr><td><code>X-AustinPay-Signature</code></td><td class="p-desc">HMAC-SHA256 (hex) dari raw body, ditandatangani pakai webhook secret milikmu</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="docs-section" id="webhook-verify">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-shield-halved"></i></div>
+          <h2>Verifikasi Signature</h2>
+        </div>
+        <p class="docs-section-desc">Selalu verifikasi signature sebelum memproses payload, supaya request palsu (bukan dari AustinPay) tidak bisa memicu logika bisnis di server kamu.</p>
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">javascript</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+          <pre class="code-block"><code>const crypto = require('crypto');
+
+app.post('/webhook/austinpay', express.raw({ type: 'application/json' }), (req, res) => {
+  const signature = req.headers['x-austinpay-signature'];
+  const secret = process.env.AUSTINPAY_WEBHOOK_SECRET;
+
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(req.body) // raw Buffer, bukan hasil JSON.parse
+    .digest('hex');
+
+  const isValid = crypto.timingSafeEqual(
+    Buffer.from(signature, 'hex'),
+    Buffer.from(expected, 'hex')
+  );
+
+  if (!isValid) return res.status(401).json({ error: 'Invalid signature' });
+
+  const payload = JSON.parse(req.body);
+  // payload.event, payload.data, payload.sentAt
+  res.status(200).json({ success: true });
+});</code></pre>
+        </div>
+        <div class="note note-warn">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Butuh contoh server penerima yang sudah lengkap dan siap-pakai? Clone repo <code>austinpay-webhook-example</code> (Express.js) di bawah ini.</span>
+        </div>
+        <a class="repo-callout" href="https://github.com/AustiinOffc/austinpay-webhook-example" target="_blank" rel="noopener noreferrer">
+          <div class="repo-callout-icon"><i class="fab fa-github"></i></div>
+          <div class="repo-callout-body">
+            <div class="repo-callout-title"><code>austinpay-webhook-example</code> <i class="fas fa-arrow-up-right-from-square" style="font-size:10px;opacity:.6"></i></div>
+            <div class="repo-callout-desc">Contoh server penerima webhook (Express.js) yang siap-pakai — clone langsung dari GitHub</div>
+          </div>
+          <i class="fas fa-chevron-right repo-callout-arrow"></i>
+        </a>
+      </section>
+
+      <!-- ── ERROR CODES ── -->
+      <section class="docs-section" id="errors">
+        <div class="docs-section-header">
+          <div class="docs-section-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <h2>Error Codes</h2>
+        </div>
+        <p class="docs-section-desc">Semua error mengembalikan JSON dengan field <code>success: false</code> dan <code>message</code> berisi pesan deskriptif.</p>
+
+        <div class="blk">Format Error</div>
+        <div class="code-wrap">
+          <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
+          <pre class="code-block"><code data-json>{"success":false,"message":"API Key tidak valid atau tidak ditemukan"}</code></pre>
+        </div>
+
+        <div class="blk">Kode HTTP</div>
+        <div class="error-grid">
+          <div class="error-card e2xx">
+            <div class="error-code">200</div>
+            <div class="error-title">OK</div>
+            <div class="error-desc">Request berhasil diproses.</div>
+          </div>
+          <div class="error-card e4xx">
+            <div class="error-code">400</div>
+            <div class="error-title">Bad Request</div>
+            <div class="error-desc">Parameter tidak valid atau tidak lengkap.</div>
+          </div>
+          <div class="error-card e4xx">
+            <div class="error-code">401</div>
+            <div class="error-title">Unauthorized</div>
+            <div class="error-desc">API Key tidak ada, tidak valid, atau tidak ditemukan.</div>
+          </div>
+          <div class="error-card e4xx">
+            <div class="error-code">403</div>
+            <div class="error-title">Forbidden</div>
+            <div class="error-desc">Akun diblokir atau IP tidak ada di whitelist.</div>
+          </div>
+          <div class="error-card e4xx">
+            <div class="error-code">404</div>
+            <div class="error-title">Not Found</div>
+            <div class="error-desc">Resource (user/transaksi) tidak ditemukan.</div>
+          </div>
+          <div class="error-card e4xx">
+            <div class="error-code">429</div>
+            <div class="error-title">Too Many Requests</div>
+            <div class="error-desc">Rate limit terlampaui. Terapkan exponential backoff.</div>
+          </div>
+          <div class="error-card e5xx">
+            <div class="error-code">500</div>
+            <div class="error-title">Server Error</div>
+            <div class="error-desc">Kesalahan internal server. Coba lagi dalam beberapa saat.</div>
+          </div>
+        </div>
+
+        <div class="blk">Pesan Error Umum</div>
+        <table class="err-msg-table">
+          <thead><tr><th>Pesan Error</th><th>HTTP</th><th>Endpoint</th><th>Penanganan</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>API Key diperlukan</code></td>
+              <td><span class="http-code hc-4">401</span></td>
+              <td class="p-desc">Semua Public API</td>
+              <td class="p-desc">Sertakan header <code>X-API-Key</code></td>
+            </tr>
+            <tr>
+              <td><code>API Key tidak valid</code></td>
+              <td><span class="http-code hc-4">401</span></td>
+              <td class="p-desc">Semua</td>
+              <td class="p-desc">Periksa kembali nilai API Key di halaman Profil</td>
+            </tr>
+            <tr>
+              <td><code>IP tidak terdaftar di whitelist</code></td>
+              <td><span class="http-code hc-4">403</span></td>
+              <td class="p-desc">Semua Public API</td>
+              <td class="p-desc">Tambahkan IP server ke whitelist di halaman Profil</td>
+            </tr>
+            <tr>
+              <td><code>Akun dibekukan</code></td>
+              <td><span class="http-code hc-4">403</span></td>
+              <td class="p-desc">Semua</td>
+              <td class="p-desc">Hubungi admin</td>
+            </tr>
+            <tr>
+              <td><code>Saldo tidak mencukupi</code></td>
+              <td><span class="http-code hc-4">400</span></td>
+              <td class="p-desc"><code>POST /withdraw/create</code></td>
+              <td class="p-desc">Deposit saldo terlebih dahulu</td>
+            </tr>
+            <tr>
+              <td><code>amount tidak valid</code></td>
+              <td><span class="http-code hc-4">400</span></td>
+              <td class="p-desc"><code>POST /deposit/create</code></td>
+              <td class="p-desc">Nominal harus bilangan bulat positif sesuai min_deposit</td>
+            </tr>
+            <tr>
+              <td><code>Transaksi tidak ditemukan</code></td>
+              <td><span class="http-code hc-4">404</span></td>
+              <td class="p-desc"><code>GET /deposit/check/:id</code></td>
+              <td class="p-desc">Periksa nilai transactionId</td>
+            </tr>
+            <tr>
+              <td><code>Deposit tidak bisa dibatalkan</code></td>
+              <td><span class="http-code hc-4">400</span></td>
+              <td class="p-desc"><code>POST /deposit/cancel/:id</code></td>
+              <td class="p-desc">Deposit sudah <code>paid</code>, <code>expired</code>, atau sudah dibatalkan sebelumnya</td>
+            </tr>
+            <tr>
+              <td><code>Internal server error</code></td>
+              <td><span class="http-code hc-5">500</span></td>
+              <td class="p-desc">Semua</td>
+              <td class="p-desc">Retry dengan exponential backoff</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      </div><!-- /docs-container -->
+
+      <footer class="docs-footer">
+        <p>© 2026 AustinPay. Semua hak cipta dilindungi.</p>
+        <p style="margin-top:6px">Butuh bantuan? <a href="/profile">Buka Profil</a> atau hubungi admin.</p>
+      </footer>
+    </div><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ── API Tester Bar ── -->
+<div class="tester-bar">
+  <div>
+    <div class="tester-label"><i class="fas fa-flask" style="margin-right:5px;color:var(--primary)"></i>API Tester</div>
+    <div style="font-size:11px;color:var(--text-muted)">Uji endpoint langsung dari browser</div>
+  </div>
+  <button type="button" class="tester-pill" id="open-tester-btn"><i class="fas fa-play"></i> Coba Endpoint</button>
+</div>
+
+<!-- ── Tester Modal ── -->
+<div class="modal-overlay" id="tester-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-flask" style="color:var(--primary);margin-right:6px"></i>API Tester</span>
+      <button type="button" class="modal-close" id="close-tester-btn"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Pilih Endpoint</label>
+        <select class="form-select" id="t-endpoint">
+          <option value="GET /api/account">GET /api/account</option>
+          <option value="GET /api/transactions">GET /api/transactions</option>
+          <option value="GET /api/mutasi">GET /api/mutasi</option>
+          <option value="GET /api/mutasi/latest">GET /api/mutasi/latest</option>
+          <option value="GET /api/mutasi/accounts">GET /api/mutasi/accounts</option>
+          <option value="POST /api/deposit/create">POST /api/deposit/create</option>
+          <option value="GET /api/deposit/check/:id">GET /api/deposit/check/:id</option>
+          <option value="POST /api/deposit/cancel/:id">POST /api/deposit/cancel/:id</option>
+          <option value="GET /api/deposit/history">GET /api/deposit/history</option>
+          <option value="GET /api/withdraw/methods">GET /api/withdraw/methods</option>
+          <option value="POST /api/withdraw/create">POST /api/withdraw/create</option>
+          <option value="GET /api/withdraw/history">GET /api/withdraw/history</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Key (?apikey=)</label>
+        <input type="text" class="form-input" id="t-apikey" placeholder="apg_live_xxxxxxxxxxxxxxxxxxxxxxxx">
+      </div>
+      <div class="form-group" id="t-path-param-group" style="display:none">
+        <label class="form-label">Path Parameter (:id)</label>
+        <input type="text" class="form-input" id="t-path-param" placeholder="APG-1751000000">
+      </div>
+      <div class="form-group" id="t-body-group" style="display:none">
+        <label class="form-label">Request Body (JSON)</label>
+        <textarea class="form-textarea" id="t-body" rows="4" placeholder='{"amount": 50000}'></textarea>
+      </div>
+
+      <div class="resp-pane" id="t-resp">
+        <div class="blk">Response</div>
+        <div class="resp-status-row">
+          <span class="resp-status-badge" id="t-status-badge">—</span>
+          <span class="resp-time" id="t-resp-time"></span>
+        </div>
+        <div class="code-wrap">
+          <button type="button" class="copy-btn" id="t-copy-resp"><i class="fas fa-copy"></i> Copy</button>
+          <pre class="code-block" style="min-height:80px"><code id="t-resp-body"></code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="tester-cancel-btn" id="close-tester-btn2">Tutup</button>
+      <button type="button" class="tester-send-btn" id="t-send-btn"><i class="fas fa-paper-plane"></i> Kirim Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- [UPDATE] app.js menyediakan: toggle sidebar (#sidebar-toggle, #sidebar,
+     #sidebar-overlay), toggle tema (#theme-toggle), sistem Toast global,
+     dan info user di sidebar-footer (data-user-name, dst) — sama seperti
+     semua halaman lain. Harus dimuat SEBELUM script lokal di bawah karena
+     script lokal memanggil Toast.success(). -->
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+
+<script>
+/* [UPDATE] showToast() lokal dihapus — sekarang pakai Toast.success()
+   dari app.js (sistem toast global yang sama dipakai semua halaman lain),
+   supaya tampilannya konsisten dan ikut tema seperti halaman lain. */
+
+/* ─── Copy ───────────────────────────────────────────────── */
+function copyText(text, msg) {
+  function fb() {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); Toast.success(msg || 'Disalin!'); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(function(){ Toast.success(msg || 'Disalin!'); }).catch(fb);
+  } else { fb(); }
+}
+
+/* ─── JSON highlight ─────────────────────────────────────── */
+function highlightJSON(raw) {
+  var text = raw;
+  try { text = JSON.stringify(JSON.parse(raw), null, 2); } catch(e){}
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(?:[^"\\]|\\.)*")\s*:/g, '<span class="ck">$1</span>:')
+    .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span class="cs">$1</span>')
+    .replace(/:\s*(-?\d+\.?\d*)/g, function(m,n){ return ': <span class="cn">'+n+'</span>'; })
+    .replace(/:\s*(true|false|null)/g, function(m,b){ return ': <span class="cb">'+b+'</span>'; });
+}
+
+/* ─── Response tab switcher ──────────────────────────────── */
+function showTab(tabEl, key) {
+  var g = tabEl.closest('.endpoint-body');
+  g.querySelectorAll('.rtab').forEach(function(t){ t.classList.remove('active'); });
+  tabEl.classList.add('active');
+  g.querySelectorAll('.rpanel').forEach(function(p){ p.classList.toggle('active', p.dataset.tab === key); });
+}
+
+/* ─── Request example language tab switcher (PHP/JS/cURL) ── */
+function showReqTab(tabEl, key) {
+  var g = tabEl.closest('.endpoint-body') || tabEl.closest('.docs-section');
+  g.querySelectorAll('.reqtab').forEach(function(t){ t.classList.remove('active'); });
+  tabEl.classList.add('active');
+  g.querySelectorAll('.reqpanel').forEach(function(p){ p.classList.toggle('active', p.dataset.reqtab === key); });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+
+  /* Base URL */
+  var host = window.location.host || 'austinstore.id';
+  var base = 'https://' + host;
+  var el; 
+  el = document.getElementById('base-url-text'); if(el) el.textContent = base;
+  el = document.getElementById('base-url-pill'); if(el) el.textContent = base;
+
+  /* JSON highlight */
+  document.querySelectorAll('code[data-json]').forEach(function(el){
+    el.innerHTML = highlightJSON(el.textContent);
+  });
+
+  /* [UPDATE] Toggle sidebar (#sidebar-toggle, #sidebar, #sidebar-overlay)
+     sekarang ditangani oleh app.js — sama persis seperti dashboard.html,
+     deposit.html, dan halaman lain. Hamburger lokal lama (#menu-btn,
+     #overlay) dihapus supaya tidak ada dua handler yang bentrok mengatur
+     elemen yang sama. Di sini kita hanya menambahkan perilaku tambahan
+     yang spesifik untuk halaman ini: auto-tutup sidebar saat item nav
+     (termasuk anchor link dokumentasi) diklik di layar mobile. */
+  document.querySelectorAll('.nav-item').forEach(function(a){
+    a.addEventListener('click', function(){
+      document.getElementById('sidebar')?.classList.remove('open');
+      document.getElementById('sidebar-overlay')?.classList.remove('open');
+    });
+  });
+
+  /* ─── Accordion ─── */
+  document.querySelectorAll('.endpoint-head').forEach(function(head){
+    head.addEventListener('click', function(e){
+      if (e.target.closest('.copy-path-btn')) return;
+      head.parentElement.classList.toggle('open');
+    });
+  });
+
+  /* ─── Copy path buttons ─── */
+  document.querySelectorAll('.copy-path-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var path = btn.getAttribute('data-path') || '';
+      copyText(base + path, 'URL disalin!');
+    });
+  });
+
+  /* ─── Copy code buttons ─── */
+  document.querySelectorAll('.copy-btn:not(#t-copy-resp)').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var code = btn.closest('.code-wrap, pre.code-block').querySelector('code');
+      if (code) {
+        copyText(code.innerText, 'Disalin!');
+        btn.innerHTML = '<i class="fas fa-check"></i> Disalin';
+        btn.classList.add('copied');
+        setTimeout(function(){ btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; btn.classList.remove('copied'); }, 2000);
+      }
+    });
+  });
+
+  /* ─── Active nav on scroll ─── */
+  var sections = document.querySelectorAll('.section, .endpoint');
+  var navItems = document.querySelectorAll('.nav-item[href^="#"]');
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        navItems.forEach(function(a){
+          var href = a.getAttribute('href');
+          a.classList.toggle('active', href === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-60px 0px -70% 0px' });
+  sections.forEach(function(s){ if(s.id) observer.observe(s); });
+
+  /* Open from URL hash */
+  if (window.location.hash) {
+    var target = document.querySelector(window.location.hash);
+    if (target && target.classList.contains('endpoint')) target.classList.add('open');
+  }
+
+  /* ────────────────────────────────────────
+     API TESTER
+  ──────────────────────────────────────── */
+  var modal = document.getElementById('tester-modal');
+  var openBtn = document.getElementById('open-tester-btn');
+  var closeBtn = document.getElementById('close-tester-btn');
+  var closeBtn2 = document.getElementById('close-tester-btn2');
+  var sendBtn = document.getElementById('t-send-btn');
+  var epSelect = document.getElementById('t-endpoint');
+  var bodyGroup = document.getElementById('t-body-group');
+  var pathGroup = document.getElementById('t-path-param-group');
+  var respPane = document.getElementById('t-resp');
+
+  function openModal() { modal && modal.classList.add('open'); }
+  function closeModal() { modal && modal.classList.remove('open'); }
+
+  if (openBtn) openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (closeBtn2) closeBtn2.addEventListener('click', closeModal);
+  modal && modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+
+  function updateTesterFields() {
+    var val = epSelect.value;
+    var isPost = val.startsWith('POST');
+    var hasPathId = val.includes(':id');
+    bodyGroup.style.display = isPost ? 'block' : 'none';
+    pathGroup.style.display = hasPathId ? 'block' : 'none';
+
+    /* Pre-fill body examples */
+    var bodyEl = document.getElementById('t-body');
+    if (isPost) {
+      if (val.includes('deposit/create')) bodyEl.value = '{\n  "amount": 50000\n}';
+      else if (val.includes('withdraw/create')) bodyEl.value = '{\n  "amount": 100000,\n  "method": "Dana",\n  "account_number": "081234567890",\n  "account_name": "Nama Pemilik"\n}';
+    }
+  }
+  if (epSelect) { epSelect.addEventListener('change', updateTesterFields); updateTesterFields(); }
+
+  /* Send request */
+  if (sendBtn) {
+    sendBtn.addEventListener('click', async function(){
+      var parts = epSelect.value.split(' ');
+      var method = parts[0];
+      var path = parts[1];
+      var apikey = document.getElementById('t-apikey').value.trim();
+      var pathParam = document.getElementById('t-path-param') ? document.getElementById('t-path-param').value.trim() : '';
+      var body = document.getElementById('t-body') ? document.getElementById('t-body').value.trim() : '';
+
+      if (!apikey) { showToast('Masukkan API Key terlebih dahulu!'); return; }
+      
+      if (pathParam) path = path.replace(':id', pathParam);
+
+      var url = window.location.origin + path + (path.includes('?') ? '&' : '?') + 'apikey=' + encodeURIComponent(apikey);
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Mengirim...';
+
+      var t0 = Date.now();
+      try {
+        var opts = {
+          method: method,
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': apikey }
+        };
+        if (method === 'POST' && body) {
+          try { opts.body = JSON.stringify(JSON.parse(body)); } catch(e) { opts.body = body; }
+        }
+
+        var res = await fetch(url, opts);
+        var elapsed = Date.now() - t0;
+        var data;
+        try { data = await res.json(); } catch(e) { data = { error: 'Response bukan JSON' }; }
+
+        respPane.classList.add('show');
+        var badge = document.getElementById('t-status-badge');
+        badge.textContent = res.status + ' ' + res.statusText;
+        badge.className = 'resp-status-badge ' + (res.ok ? 'rsb-ok' : 'rsb-err');
+        document.getElementById('t-resp-time').textContent = elapsed + 'ms';
+        var rc = document.getElementById('t-resp-body');
+        rc.innerHTML = highlightJSON(JSON.stringify(data));
+      } catch(err) {
+        respPane.classList.add('show');
+        var badge2 = document.getElementById('t-status-badge');
+        badge2.textContent = 'Network Error';
+        badge2.className = 'resp-status-badge rsb-err';
+        document.getElementById('t-resp-body').textContent = err.message;
+      }
+
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Request';
+    });
+  }
+
+  /* Copy response button */
+  var copyRespBtn = document.getElementById('t-copy-resp');
+  if (copyRespBtn) {
+    copyRespBtn.addEventListener('click', function(){
+      var code = document.getElementById('t-resp-body');
+      if (code) copyText(code.innerText, 'Response disalin!');
+    });
+  }
+
+});
+</script>
+</body>
+</html>

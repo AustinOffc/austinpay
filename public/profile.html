@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Profil — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon"><i class="fas fa-bolt"></i></div><span>Austin Pay</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item active" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title">Profil Saya</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="display:grid;gap:20px;align-items:start" id="profile-grid">
+
+        <!-- Left -->
+        <div>
+          <div class="card mb-16">
+            <div class="card-body" style="text-align:center;padding:32px 20px">
+              <div style="position:relative;display:inline-block;margin-bottom:16px">
+                <div class="user-avatar" id="profile-avatar" style="width:88px;height:88px;font-size:36px;margin:0 auto"></div>
+                <label for="avatar-input" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:12px"><i class="fas fa-pen"></i></label>
+                <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+              </div>
+              <div style="font-size:18px;font-weight:700" id="profile-name">...</div>
+              <div style="font-size:13px;color:var(--text-muted)" id="profile-username">@...</div>
+              <div class="mt-8" id="profile-role"></div>
+              <div class="divider"></div>
+              <div style="font-size:13px;color:var(--text-muted)">Bergabung: <span id="profile-joined">-</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px">Saldo Tersedia</div>
+              <div style="font-size:22px;font-weight:800;color:var(--primary)" data-balance>Rp 0</div>
+              <div class="mt-8" style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="location.href='/deposit'">Top Up</button>
+                <button class="btn btn-outline btn-sm" onclick="location.href='/withdraw'">Tarik</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <!-- Edit Profil -->
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title"><i class="fas fa-edit" style="color:var(--primary)"></i> Edit Profil</span></div>
+            <div class="card-body">
+              <div id="profile-alert"></div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Nama Lengkap</label>
+                  <input type="text" class="form-control" id="full_name">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Username</label>
+                  <input type="text" class="form-control" id="username" disabled style="opacity:.6">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" readonly style="opacity:.7">
+                  <p class="form-hint">Ganti email lewat kartu "Email &amp; Verifikasi" di bawah.</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">No. Telepon</label>
+                  <input type="text" class="form-control" id="phone">
+                </div>
+              </div>
+              <button class="btn btn-primary" id="save-profile-btn" onclick="saveProfile()"><i class="fas fa-save"></i> Simpan Perubahan</button>
+            </div>
+          </div>
+
+          <!-- Email & Verifikasi -->
+          <div class="card mb-16" id="email-card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-envelope" style="color:var(--primary)"></i> Email &amp; Verifikasi</span></div>
+            <div class="card-body">
+              <div id="email-alert"></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+                <b id="email-current" style="word-break:break-all">-</b>
+                <span id="email-badge" class="badge"></span>
+              </div>
+
+              <div id="email-verify-box" style="display:none">
+                <div class="form-hint mb-8">Verifikasi email dibutuhkan untuk reset PIN lewat email dan pemulihan akun.</div>
+                <button class="btn btn-primary btn-sm" id="email-verify-send-btn"><i class="fas fa-paper-plane"></i> Kirim Kode Verifikasi</button>
+                <div id="email-verify-confirm" style="display:none" class="mt-12">
+                  <label class="form-label">Kode dari Email</label>
+                  <div style="display:flex;gap:8px">
+                    <input type="text" class="form-control" id="email-verify-code" inputmode="numeric" maxlength="6" placeholder="123456">
+                    <button class="btn btn-primary" id="email-verify-confirm-btn">Verifikasi</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              <button class="btn btn-outline btn-sm" id="email-change-toggle-btn"><i class="fas fa-pen"></i> Ganti Email</button>
+              <div id="email-change-box" style="display:none" class="mt-12">
+                <div class="form-group">
+                  <label class="form-label">Email Baru</label>
+                  <input type="email" class="form-control" id="email-change-new" placeholder="emailbaru@kamu.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password Akun</label>
+                  <input type="password" class="form-control" id="email-change-password" placeholder="Untuk konfirmasi">
+                </div>
+                <button class="btn btn-primary btn-sm" id="email-change-send-btn"><i class="fas fa-paper-plane"></i> Kirim Kode ke Email Baru</button>
+                <div id="email-change-confirm" style="display:none" class="mt-12">
+                  <label class="form-label">Kode dari Email Baru</label>
+                  <div style="display:flex;gap:8px">
+                    <input type="text" class="form-control" id="email-change-code" inputmode="numeric" maxlength="6" placeholder="123456">
+                    <button class="btn btn-primary" id="email-change-confirm-btn">Konfirmasi</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ganti Password -->
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title"><i class="fas fa-lock" style="color:var(--warning)"></i> Ganti Password</span></div>
+            <div class="card-body">
+              <div id="pass-alert"></div>
+              <div class="form-group">
+                <label class="form-label">Password Lama</label>
+                <input type="password" class="form-control" id="old_password">
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Password Baru</label>
+                  <input type="password" class="form-control" id="new_password">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Konfirmasi Password</label>
+                  <input type="password" class="form-control" id="confirm_password">
+                </div>
+              </div>
+              <button class="btn btn-danger" id="change-pass-btn" onclick="changePassword()"><i class="fas fa-key"></i> Ganti Password</button>
+            </div>
+          </div>
+
+          <!-- PIN Withdraw -->
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title"><i class="fas fa-shield-halved" style="color:var(--danger)"></i> PIN Withdraw</span></div>
+            <div class="card-body">
+              <div id="pin-alert"></div>
+              <div class="alert alert-info" style="margin-bottom:14px">
+                <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+                <span style="min-width:0">PIN 6 digit ini wajib dimasukkan setiap kali kamu melakukan withdraw (manual maupun instant) lewat dashboard ini. Jangan bagikan PIN ke siapa pun, termasuk pihak yang mengaku admin.</span>
+              </div>
+
+              <!-- Ditampilkan kalau BELUM punya PIN -->
+              <div id="pin-set-section" style="display:none">
+                <div class="form-group">
+                  <label class="form-label">PIN Baru (6 digit)</label>
+                  <input type="password" class="form-control" id="set_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Konfirmasi PIN</label>
+                  <input type="password" class="form-control" id="set_pin_confirm" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                </div>
+                <button class="btn btn-primary" id="set-pin-btn" onclick="setPinSubmit()"><i class="fas fa-shield-halved"></i> Atur PIN</button>
+              </div>
+
+              <!-- Ditampilkan kalau SUDAH punya PIN -->
+              <div id="pin-change-section" style="display:none">
+                <div class="form-hint mb-8" id="pin-set-meta"></div>
+                <div class="form-group">
+                  <label class="form-label">PIN Lama</label>
+                  <input type="password" class="form-control" id="old_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                </div>
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label class="form-label">PIN Baru</label>
+                    <input type="password" class="form-control" id="new_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Konfirmasi PIN Baru</label>
+                    <input type="password" class="form-control" id="confirm_pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                  </div>
+                </div>
+                <button class="btn btn-danger" id="change-pin-btn" onclick="changePinSubmit()"><i class="fas fa-key"></i> Ganti PIN</button>
+                <div class="mt-12"><a href="#" id="pin-forgot-link" style="color:var(--primary);font-size:13px;font-weight:600">Lupa PIN?</a></div>
+                <div id="pin-forgot-section" style="display:none" class="mt-12">
+                  <div class="alert alert-info mb-8"><i class="fas fa-info-circle"></i> Kami kirim kode ke email terverifikasi kamu untuk membuat PIN baru.</div>
+                  <button class="btn btn-primary btn-sm" id="pin-forgot-send-btn"><i class="fas fa-paper-plane"></i> Kirim Kode ke Email</button>
+                  <div id="pin-forgot-confirm" style="display:none" class="mt-12">
+                    <div class="form-group">
+                      <label class="form-label">Kode dari Email</label>
+                      <input type="text" class="form-control" id="pin-forgot-code" inputmode="numeric" maxlength="6" placeholder="123456">
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <label class="form-label">PIN Baru</label>
+                        <input type="password" class="form-control" id="pin-forgot-new" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Konfirmasi PIN Baru</label>
+                        <input type="password" class="form-control" id="pin-forgot-confirm-pin" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="••••••">
+                      </div>
+                    </div>
+                    <button class="btn btn-danger" id="pin-forgot-reset-btn"><i class="fas fa-key"></i> Reset PIN</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Perangkat & Sesi -->
+          <div class="card mb-16" id="devices-card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-laptop-mobile" style="color:var(--primary)"></i> Perangkat &amp; Sesi</span></div>
+            <div class="card-body">
+              <div class="alert alert-info" style="margin-bottom:14px">
+                <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+                <span style="min-width:0">Perangkat tepercaya tidak memicu notifikasi login baru. Cabut kepercayaan perangkat yang tidak kamu kenal, atau keluar dari semua perangkat tanpa perlu ganti password.</span>
+              </div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">Sesi Aktif</div>
+              <div id="devices-sessions" class="text-sm text-muted">Memuat...</div>
+              <div class="divider"></div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">Perangkat Tepercaya</div>
+              <div id="devices-trusted" class="text-sm text-muted">Memuat...</div>
+              <div class="divider"></div>
+              <button class="btn btn-danger" id="logout-all-btn" type="button"><i class="fas fa-right-from-bracket"></i> Keluar dari Semua Perangkat</button>
+              <div class="form-hint mt-8">Semua sesi (termasuk perangkat ini), perangkat tepercaya, dan buka kunci sidik jari di app akan dicabut. Kamu perlu login ulang.</div>
+            </div>
+          </div>
+
+          <!-- API Key -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-key" style="color:var(--primary)"></i> API Key</span>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-info" style="margin-bottom:14px">
+                <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+                <span style="min-width:0">Setiap request Public API wajib menyertakan API key (lewat query <code>?apikey=</code>, header <code>X-API-Key</code>, atau <code>Authorization: Bearer</code>) dan dikirim dari IP yang sudah masuk whitelist. Request yang tidak memenuhi keduanya akan ditolak. Endpoint deposit &amp; withdraw bisa dipanggil dari path yang sama baik lewat dashboard (sesi login) maupun API key — server membedakan otomatis dari kredensial yang kamu kirim.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">API Key Kamu</label>
+                <div class="input-group">
+                  <input type="password" class="form-control has-2-addons" id="my_apikey" readonly style="font-family:monospace;font-size:12px">
+                  <span class="input-addons">
+                    <span class="input-addon" onclick="toggleApiKeyVisibility()" id="apikey-eye-icon" aria-label="Tampilkan/sembunyikan API key">
+                      <svg id="apikey-eye-open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg id="apikey-eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </span>
+                    <span class="input-addon" onclick="copyMyApiKey()"><i class="fas fa-copy"></i></span>
+                  </span>
+                </div>
+                <div class="form-hint" id="apikey-meta">Memuat...</div>
+              </div>
+              <button class="btn btn-outline" id="regenerate-key-btn" onclick="confirmRegenerateKey()"><i class="fas fa-sync"></i> Ganti API Key</button>
+            </div>
+          </div>
+
+          <!-- API Secret (HMAC Signature) -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-shield-alt" style="color:var(--primary)"></i> API Secret (HMAC Signature)</span>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-info" style="margin-bottom:14px">
+                <i class="fas fa-info-circle" style="flex-shrink:0"></i>
+                <span style="min-width:0">API secret dipakai untuk menandatangani (HMAC-SHA256) tiap request Public API lewat header <code>X-Timestamp</code> &amp; <code>X-Signature</code> — tambahan di luar API key, bukan pengganti. Kalau kamu sudah generate secret, HMAC signature jadi <strong>wajib</strong> untuk key ini; request tanpa signature valid akan ditolak. Secret hanya ditampilkan <strong>sekali</strong> saat dibuat/diganti — catat baik-baik.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <div class="form-hint" id="apisecret-meta">Memuat...</div>
+              </div>
+              <div class="form-group" id="apisecret-reveal-group" style="display:none">
+                <label class="form-label">API Secret Baru (catat sekarang, tidak akan tampil lagi)</label>
+                <div class="input-group">
+                  <input type="text" class="form-control has-2-addons" id="my_apisecret" readonly style="font-family:monospace;font-size:12px">
+                  <span class="input-addons">
+                    <span class="input-addon" onclick="copyMyApiSecret()"><i class="fas fa-copy"></i></span>
+                  </span>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-outline" id="regenerate-secret-btn" onclick="confirmRegenerateSecret()"><i class="fas fa-sync"></i> Buat / Ganti API Secret</button>
+                <button class="btn btn-outline" id="delete-secret-btn" onclick="confirmDeleteSecret()" style="display:none;color:var(--danger);border-color:var(--danger)"><i class="fas fa-trash"></i> Hapus API Secret</button>
+              </div>
+
+              <div id="ip-whitelist-toggle-group" style="display:none;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+                <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer">
+                  <span>
+                    Wajibkan IP Whitelist
+                    <span style="display:block;font-size:12px;color:var(--text-secondary);margin-top:2px;font-weight:400">Matikan kalau server kamu tidak punya IP tetap (mis. Vercel serverless) — HMAC signature jadi satu-satunya pembuktian request, jadi jaga API secret baik-baik.</span>
+                  </span>
+                  <input type="checkbox" id="ip-whitelist-toggle" checked onchange="handleToggleIpWhitelist(this)" style="flex-shrink:0;width:20px;height:20px">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- IP Whitelist -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-shield-alt" style="color:var(--success)"></i> Whitelist IP</span>
+            </div>
+            <div class="card-body">
+              <div id="ip-alert"></div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Alamat IP</label>
+                  <input type="text" class="form-control" id="ip_address" placeholder="contoh: 203.0.113.10 atau 203.0.113.0/24">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Label (opsional)</label>
+                  <input type="text" class="form-control" id="ip_label" placeholder="contoh: Server Produksi">
+                </div>
+              </div>
+              <button class="btn btn-primary" id="add-ip-btn" onclick="addIp()"><i class="fas fa-plus"></i> Tambah IP</button>
+              <div class="divider"></div>
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead><tr><th>IP / CIDR</th><th>Label</th><th>Ditambahkan</th><th></th></tr></thead>
+                  <tbody id="ip-list"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Login History -->
+          <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-shield-alt" style="color:var(--primary)"></i> Aktivitas Login</span></div>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead><tr><th>Waktu</th><th>IP</th><th>Status</th><th>Device</th></tr></thead>
+                <tbody id="login-history"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script src="/js/profile.js"></script>
+<script src="/js/email-security.js"></script>
+</body>
+</html>

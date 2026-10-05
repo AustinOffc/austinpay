@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Dashboard — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css" id="fa-local">
+  <script>
+    document.querySelector('#fa-local') && (function(){
+      var t=document.querySelector('link[href*="jsdelivr"][href*="fontawesome"]');
+      t&&t.addEventListener('load',function(){var l=document.getElementById('fa-local');l&&l.parentNode.removeChild(l);});
+    })();
+  </script>
+  <style>
+    .wallet-top { display:flex !important; align-items:center; justify-content:space-between; gap:10px; }
+    .wallet-top .wallet-label { margin:0 !important; }
+    .wallet-eye {
+      position:static !important; flex:0 0 auto;
+      width:36px; height:36px; border-radius:50% !important;
+      display:inline-flex; align-items:center; justify-content:center;
+      background:var(--bg-card); color:var(--text);
+      border:1.5px solid var(--border) !important;
+      font-size:15px; padding:0 !important; margin:0 !important; cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .wallet-eye:active { transform:scale(.94); }
+
+    .promo-carousel { margin:0 0 14px; position:relative; width:100%; }
+    .promo-track {
+      display:flex !important; flex-wrap:nowrap !important; flex-direction:row !important;
+      overflow-x:auto !important; overflow-y:hidden !important;
+      scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+      border-radius:24px; border:1.5px solid var(--border); background:var(--bg-card);
+    }
+    .promo-track::-webkit-scrollbar { display:none; }
+    .promo-slide { flex:0 0 100% !important; min-width:100%; scroll-snap-align:start; display:block; aspect-ratio:2/1; overflow:hidden; }
+    .promo-slide img { width:100% !important; height:100% !important; max-width:none !important; object-fit:cover; display:block; user-select:none; border-radius:0 !important; margin:0 !important; }
+    .promo-dots { display:flex; justify-content:center; gap:6px; margin-top:8px; }
+    .promo-dots:empty { display:none; }
+    .promo-dot { width:7px; height:7px; border-radius:99px; background:var(--border); transition:all .25s; }
+    .promo-dot.active { width:20px; background:var(--text); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+        <span>Austin Pay</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu Utama</div>
+      <div class="nav-item active" data-href="/dashboard"><span class="nav-icon"><i class="fas fa-home"></i></span> Dashboard</div>
+      <div class="nav-item" data-href="/saweria"><span class="nav-icon"><i class="fas fa-hand-holding-heart"></i></span> Saweria</div>
+      <div class="nav-item" data-href="/deposit"><span class="nav-icon"><i class="fas fa-download"></i></span> Deposit</div>
+      <div class="nav-item" data-href="/withdraw"><span class="nav-icon"><i class="fas fa-upload"></i></span> Withdraw</div>
+      <div class="nav-item" data-href="/history"><span class="nav-icon"><i class="fas fa-history"></i></span> Riwayat</div>
+      <div class="nav-item" data-href="/overview"><span class="nav-icon"><i class="fas fa-gauge-high"></i></span> Overview</div>
+      <div class="nav-item" data-href="/leaderboard"><span class="nav-icon"><i class="fas fa-trophy"></i></span> Leaderboard</div>
+      <div class="nav-item" data-href="/profile"><span class="nav-icon"><i class="fas fa-user"></i></span> Profil</div>
+      <div class="nav-item" data-href="/download-apk"><span class="nav-icon"><i class="fas fa-mobile-screen-button"></i></span> Download APK</div>
+      <div class="nav-item" data-href="/api-settings"><span class="nav-icon"><i class="fas fa-code"></i></span> API Docs</div>
+      <div class="nav-item" data-href="/webhook"><span class="nav-icon"><i class="fas fa-satellite-dish"></i></span> Webhook</div>
+      <div class="nav-item" data-href="/notification"><span class="nav-icon"><i class="fas fa-bell"></i></span> Notifikasi</div>
+      <div class="nav-item" data-href="/feedback"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span> Feedback</div>
+      <div class="nav-item" data-href="/penghargaan"><span class="nav-icon"><i class="fas fa-award"></i></span> Penghargaan</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" data-user-avatar></div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" data-user-name>...</div>
+          <div class="sidebar-user-role" data-user-role>Member</div>
+        </div>
+      </div>
+      <div class="nav-item mt-8" data-logout style="color:#ef4444"><span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span> Keluar</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-title"><small>Hai, <span data-user-name>...</span></small>Beranda</div>
+      <div class="topbar-actions">
+        <div class="notif-bell-wrapper">
+          <button class="btn-icon" id="notif-bell"><i class="fas fa-bell"></i></button>
+          <span class="notif-badge" id="notif-badge"></span>
+        </div>
+        <button class="btn-icon" id="theme-toggle"><i class="fas fa-moon"></i></button>
+        <div class="user-avatar" data-user-avatar style="cursor:pointer" onclick="location.href='/profile'"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Marquee sambutan (hanya tampil kalau diaktifkan admin) -->
+      <div class="dash-marquee" id="dash-marquee" style="display:none">
+        <i class="fas fa-bullhorn dash-marquee-icon"></i>
+        <div class="dash-marquee-track">
+          <span class="dash-marquee-text" id="dash-marquee-text-a"></span>
+          <span class="dash-marquee-text" id="dash-marquee-text-b"></span>
+        </div>
+      </div>
+
+      <!-- Wallet Hero -->
+      <div class="wallet-hero">
+        <div class="wallet-top">
+          <div class="wallet-label">Saldo kamu</div>
+          <button type="button" class="wallet-eye" id="wallet-eye" aria-label="Sembunyikan saldo" aria-pressed="false">
+            <i class="fas fa-eye" id="wallet-eye-icon"></i>
+          </button>
+        </div>
+        <div class="wallet-balance" id="hero-balance">Rp 0</div>
+        <div class="wallet-actions">
+          <button class="btn btn-white" id="btn-topup"><i class="fas fa-plus"></i> Top Up</button>
+          <button class="btn btn-white" id="btn-withdraw"><i class="fas fa-arrow-up"></i> Withdraw</button>
+          <button class="btn btn-white" id="btn-history"><i class="fas fa-clock-rotate-left"></i> Riwayat</button>
+          <button class="btn btn-white" id="btn-all"><i class="fas fa-grip"></i> Semua</button>
+        </div>
+      </div>
+
+      <!-- Banner promo (carousel geser, sama seperti di app Flutter; kelola di Admin > Info Dashboard) -->
+      <div class="promo-carousel" id="promo-carousel" style="display:none">
+        <div class="promo-track" id="promo-track"></div>
+        <div class="promo-dots" id="promo-dots"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-download"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Deposit</div>
+            <div class="stat-value" id="stat-deposit">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><i class="fas fa-upload"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Withdraw</div>
+            <div class="stat-value" id="stat-withdraw">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple"><i class="fas fa-chart-bar"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Total Transaksi</div>
+            <div class="stat-value" id="stat-tx">0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-calendar-day"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Transaksi Hari Ini</div>
+            <div class="stat-value" id="stat-today">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deposit Harian / Mingguan / Bulanan -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-calendar-day"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Deposit Harian</div>
+            <div class="stat-value" id="stat-deposit-daily">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-calendar-week"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Deposit Mingguan</div>
+            <div class="stat-value" id="stat-deposit-weekly">Rp 0</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow"><i class="fas fa-calendar"></i></div>
+          <div class="stat-info">
+            <div class="stat-label">Deposit Bulanan</div>
+            <div class="stat-value" id="stat-deposit-monthly">Rp 0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart + Recent -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-chart-line" style="color:var(--primary)"></i> Grafik Transaksi (7 Hari)</span>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrapper"><canvas id="txChart"></canvas></div>
+            <div class="chart-legend-custom" id="chart-legend"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-tasks" style="color:var(--primary)"></i> Transaksi Terbaru</span>
+            <a href="/history" style="font-size:13px;color:var(--primary)">Lihat Semua</a>
+          </div>
+          <div id="recent-tx-list" class="card-body">
+            <div class="loading-spinner"></div>
+          </div>
+          <div class="pagination">
+            <span class="pagination-info" id="recent-tx-page-info"></span>
+            <div class="pagination-nav" id="recent-tx-pagination"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Informasi Layanan (dinamis, dikelola dari Admin > Info Dashboard) -->
+<div class="modal-overlay" id="info-modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-circle-info" style="color:var(--primary);margin-right:8px"></i>Informasi Layanan</span>
+      <button class="modal-close" id="info-modal-close">&times;</button>
+    </div>
+    <div class="modal-body" id="info-modal-body" style="max-height:60vh;overflow-y:auto">
+      <!-- diisi dinamis oleh renderInfoModal() -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="info-modal-dismiss">Tutup</button>
+      <button class="btn btn-primary" id="info-modal-read"><i class="fas fa-check"></i> Saya sudah membaca</button>
+    </div>
+  </div>
+</div>
+
+<!-- Banner ke-2: ajakan gabung WhatsApp Channel resmi (muncul setelah modal Informasi Layanan ditutup) -->
+<div class="modal-overlay" id="channel-modal-overlay">
+  <div class="modal channel-modal">
+    <button class="channel-modal-x" id="channel-modal-close" aria-label="Tutup">&times;</button>
+    <div class="channel-modal-icon"><i class="fab fa-whatsapp"></i></div>
+    <h3 class="channel-modal-title">📢 Gabung WhatsApp Channel Resmi Austin</h3>
+    <p class="channel-modal-text">Biar nggak ketinggalan info penting! Gabung ke channel resmi kami untuk update fitur, info maintenance, dan pengumuman layanan Austin Pay terbaru.</p>
+    <div class="channel-modal-perk">
+      <i class="fab fa-whatsapp"></i>
+      <div>
+        <div class="channel-modal-perk-label">CHANNEL RESMI</div>
+        <div class="channel-modal-perk-text">Update fitur &amp; info layanan langsung di WhatsApp kamu.</div>
+      </div>
+    </div>
+    <div class="channel-modal-actions">
+      <a class="btn btn-wa" id="channel-modal-join" href="https://whatsapp.com/channel/0029VbAYbLc7tkizhltuyV1b" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> Gabung Channel</a>
+      <a class="btn btn-wa" id="channel-modal-join-group" href="https://chat.whatsapp.com/BYOLTRx7I8y2hwqvWbsK4X" target="_blank" rel="noopener noreferrer"><i class="fas fa-users"></i> Gabung Grup</a>
+      <button class="btn btn-outline" id="channel-modal-later">Nanti Saja</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifikasi mengambang: install aplikasi Android (muncul setelah semua banner ditutup, bisa digeser untuk menghilangkan) -->
+<div class="apk-toast" id="apk-toast" role="alert" aria-hidden="true">
+  <a class="apk-toast-install" id="apk-toast-install" href="/download/apk" download><i class="fab fa-android"></i> Install</a>
+  <div class="apk-toast-text">
+    <div class="apk-toast-title">Install Aplikasi Austin Pay</div>
+    <div class="apk-toast-sub" id="apk-toast-sub">Transaksi lebih cepat &amp; praktis di HP kamu</div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script src="/js/push.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/tickets.js"></script>
+<script src="/js/cs.js"></script>
+<script>
+// ── Modal Informasi Layanan (dinamis) ───────────────────────────
+// Muncul saat: (1) user balik lagi setelah offline/nutup web lebih dari
+// OFFLINE_THRESHOLD_MS, ATAU (2) ada info banner baru dari admin yang
+// belum pernah dibaca user ini (dibandingkan via localStorage). Setelah
+// klik "Saya sudah membaca", ID banner yang sedang tampil disimpan supaya
+// tidak muncul lagi sampai admin menambah/mengubah isinya.
+const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 menit
+const INFO_SEEN_KEY = 'dash_info_banners_seen';
+let currentInfoBannerIds = '';
+
+var infoModalOverlay = document.getElementById('info-modal-overlay');
+var infoModalClose = document.getElementById('info-modal-close');
+var infoModalDismiss = document.getElementById('info-modal-dismiss');
+var infoModalRead = document.getElementById('info-modal-read');
+var infoModalBody = document.getElementById('info-modal-body');
+
+var infoModalOnClose = null;
+function openInfoModal(onClose) { infoModalOnClose = onClose || null; infoModalOverlay.classList.add('open'); }
+function closeInfoModal() {
+  infoModalOverlay.classList.remove('open');
+  // callback dipanggil sekali saja (tombol X / Tutup / klik overlay bisa saling tumpang)
+  var cb = infoModalOnClose; infoModalOnClose = null;
+  if (cb) cb();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+// Render daftar info banner ke dalam modal. Return true kalau ada isinya.
+function renderInfoModal(items) {
+  if (!items || !items.length) { infoModalBody.innerHTML = ''; return false; }
+  infoModalBody.innerHTML = items.map(it => `
+    <div class="info-banner-item">
+      <div class="info-banner-title">${escapeHtml(it.icon || '📢')} ${escapeHtml(it.title || '')}</div>
+      <div class="info-banner-message">${escapeHtml(it.message || '').replace(/\n/g, '<br>')}</div>
+      <div class="info-banner-date">${formatDate(it.date)}</div>
+    </div>
+  `).join('');
+  return true;
+}
+
+infoModalClose.addEventListener('click', closeInfoModal);
+infoModalDismiss.addEventListener('click', closeInfoModal);
+infoModalRead.addEventListener('click', function() {
+  localStorage.setItem(INFO_SEEN_KEY, currentInfoBannerIds);
+  closeInfoModal();
+});
+infoModalOverlay.addEventListener('click', function(e) { if (e.target === infoModalOverlay) closeInfoModal(); });
+</script>
+<script>
+// ── Antrean pop-up pasca-login ──────────────────────────────────
+// Urutan tampil (masing-masing menunggu yang sebelumnya ditutup user):
+//   1) Modal Informasi Layanan  (aturan tampil lama, tidak berubah)
+//   2) Banner ajakan gabung WhatsApp Channel resmi
+//   3) Notifikasi mengambang "Install Aplikasi Android" (geser untuk hilangkan)
+// Banner (2) muncul mengikuti banner (1), atau saat user baru saja login/daftar.
+// Notifikasi (3) hanya muncul di sesi yang baru saja login/daftar, dan hanya
+// kalau file APK memang sudah diupload admin.
+var WA_CHANNEL_JOINED_KEY = 'dash_wa_channel_joined';
+var WA_GROUP_JOINED_KEY = 'dash_wa_group_joined';
+var WA_CHANNEL_REMEMBER_JOIN = true;   // true = setelah klik tombol join, tombol itu tidak muncul lagi di browser itu
+var APK_TOAST_ANDROID_ONLY = false;    // true = notif install hanya tampil di HP Android
+var APK_TOAST_AUTOHIDE_MS = 0;         // >0 = hilang otomatis setelah N ms (0 = tetap sampai digeser)
+var POPUP_FIRST_DELAY_MS = 500;
+var POPUP_STEP_GAP_MS = 350;           // jeda antar pop-up (biar animasi tutup selesai dulu)
+
+// ── Banner WhatsApp Channel ──
+var channelOverlay = document.getElementById('channel-modal-overlay');
+var channelOnClose = null;
+function openChannelModal(onClose) { channelOnClose = onClose || null; channelOverlay.classList.add('open'); }
+function closeChannelModal() {
+  channelOverlay.classList.remove('open');
+  var cb = channelOnClose; channelOnClose = null;
+  if (cb) cb();
+}
+function isWaJoined(key) {
+  try { return WA_CHANNEL_REMEMBER_JOIN && localStorage.getItem(key) === '1'; } catch (e) { return false; }
+}
+
+// Link Channel & Grup diambil dari pengaturan admin (menu APK Aplikasi).
+// Kalau request gagal, pakai link bawaan. Link kosong = tombol disembunyikan.
+var waLinks = {
+  channel: 'https://whatsapp.com/channel/0029VbAYbLc7tkizhltuyV1b',
+  group: 'https://chat.whatsapp.com/BYOLTRx7I8y2hwqvWbsK4X'
+};
+var waLinksPromise = fetch(apiUrl('/api/wa-links'), { credentials: 'include' })
+  .then(function(r) { return r.json(); })
+  .then(function(d) { if (d && d.success && d.links) waLinks = d.links; })
+  .catch(function() {});
+
+var WA_BUTTONS = [
+  { id: 'channel-modal-join', key: WA_CHANNEL_JOINED_KEY, link: 'channel' },
+  { id: 'channel-modal-join-group', key: WA_GROUP_JOINED_KEY, link: 'group' }
+];
+
+// Tombol tampil hanya kalau linknya ada DAN user belum klik join di browser ini.
+// Return: jumlah tombol yang masih tampil.
+function refreshWaButtons() {
+  var visible = 0;
+  WA_BUTTONS.forEach(function(b) {
+    var a = document.getElementById(b.id);
+    if (!a) return;
+    var link = waLinks[b.link];
+    if (link) a.href = link;
+    var show = !!link && !isWaJoined(b.key);
+    a.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  return visible;
+}
+
+document.getElementById('channel-modal-close').addEventListener('click', closeChannelModal);
+document.getElementById('channel-modal-later').addEventListener('click', closeChannelModal);
+channelOverlay.addEventListener('click', function(e) { if (e.target === channelOverlay) closeChannelModal(); });
+WA_BUTTONS.forEach(function(b) {
+  document.getElementById(b.id).addEventListener('click', function() {
+    // tidak preventDefault: link WhatsApp tetap terbuka lewat href (target=_blank)
+    try { localStorage.setItem(b.key, '1'); } catch (e) {}
+    // Tombol yang barusan diklik hilang; popup tutup kalau tidak ada tombol tersisa
+    if (refreshWaButtons() === 0) closeChannelModal();
+  });
+});
+
+// ── Notifikasi mengambang install APK ──
+function apkFormatSize(bytes) {
+  var n = Number(bytes) || 0;
+  if (!n) return '';
+  return n >= 1048576 ? (n / 1048576).toFixed(1).replace('.0', '') + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+
+function dismissApkToast(el, dir) {
+  if (el._gone) return;
+  el._gone = true;
+  el.classList.remove('dragging');
+  el.style.transition = 'transform .25s ease, opacity .25s ease';
+  el.style.transform = dir === 'up'
+    ? 'translate(-50%, ' + (-(el.offsetHeight + 40)) + 'px)'
+    : 'translate(calc(-50% + ' + (dir === 'right' ? window.innerWidth : -window.innerWidth) + 'px), 0)';
+  el.style.opacity = '0';
+  el.style.pointerEvents = 'none';
+  el.setAttribute('aria-hidden', 'true');
+  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+}
+
+// Geser kiri/kanan (atau ke atas) untuk menghilangkan. Pakai Pointer Events
+// jadi jalan di layar sentuh maupun mouse. Pointer baru "ditangkap" setelah
+// gerakan jelas berupa swipe, supaya tap biasa pada tombol Install tetap normal.
+function enableApkToastSwipe(el) {
+  var sx = 0, sy = 0, st = 0, dx = 0, dy = 0, axis = null, tracking = false, suppressClick = false;
+
+  el.addEventListener('pointerdown', function(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    tracking = true; axis = null; dx = 0; dy = 0;
+    sx = e.clientX; sy = e.clientY; st = Date.now();
+  });
+
+  el.addEventListener('pointermove', function(e) {
+    if (!tracking) return;
+    dx = e.clientX - sx; dy = e.clientY - sy;
+    if (!axis) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dx) > Math.abs(dy)) axis = 'x';
+      else if (dy < 0) axis = 'y';
+      else { tracking = false; return; }   // geser ke bawah: abaikan
+      el.classList.add('dragging');
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    if (axis === 'x') {
+      el.style.transform = 'translate(calc(-50% + ' + dx + 'px), 0)';
+      el.style.opacity = String(Math.max(0.15, 1 - Math.abs(dx) / (el.offsetWidth * 1.1)));
+    } else {
+      var up = Math.min(0, dy);
+      el.style.transform = 'translate(-50%, ' + up + 'px)';
+      el.style.opacity = String(Math.max(0.15, 1 - Math.abs(up) / (el.offsetHeight * 1.5)));
+    }
+  });
+
+  function endDrag() {
+    if (!tracking) return;
+    tracking = false;
+    if (!axis) return;
+    suppressClick = true;                                  // cegah "klik" ikutan setelah swipe
+    setTimeout(function() { suppressClick = false; }, 60);
+    el.classList.remove('dragging');
+    var dist = axis === 'x' ? Math.abs(dx) : Math.abs(Math.min(0, dy));
+    var size = axis === 'x' ? el.offsetWidth : el.offsetHeight;
+    var speed = dist / Math.max(1, Date.now() - st);       // px/ms
+    if (dist > size * 0.35 || (dist > 30 && speed > 0.5)) {
+      dismissApkToast(el, axis === 'x' ? (dx > 0 ? 'right' : 'left') : 'up');
+    } else {
+      el.style.transform = ''; el.style.opacity = '';       // balik ke posisi semula
+    }
+  }
+  el.addEventListener('pointerup', endDrag);
+  el.addEventListener('pointercancel', endDrag);
+  el.addEventListener('click', function(e) {
+    if (suppressClick) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.body.contains(el)) dismissApkToast(el, 'up');
+  });
+}
+
+function showApkToast(apk) {
+  var el = document.getElementById('apk-toast');
+  if (!el) return;
+  var meta = [];
+  if (apk.version) meta.push('v' + apk.version);
+  var size = apkFormatSize(apk.size);
+  if (size) meta.push(size);
+
+  if (apk.has_update) {
+    // User ini pernah download APK dan sekarang ada versi yang lebih baru
+    document.getElementById('apk-toast-install').innerHTML = '<i class="fab fa-android"></i> Update';
+    document.querySelector('#apk-toast .apk-toast-title').textContent = 'Update Aplikasi Austin Pay';
+    document.getElementById('apk-toast-sub').textContent =
+      (meta.length ? 'Versi terbaru ' + meta.join(' • ') : 'Versi terbaru tersedia') + ' — perbarui sekarang';
+  } else if (meta.length) {
+    document.getElementById('apk-toast-sub').textContent = meta.join(' • ') + ' — lebih cepat & praktis';
+  }
+
+  enableApkToastSwipe(el);
+  document.getElementById('apk-toast-install').addEventListener('click', function() {
+    // unduhan dimulai oleh href+download; notif ditutup setelahnya
+    setTimeout(function() { dismissApkToast(el, 'up'); }, 400);
+  });
+
+  el.setAttribute('aria-hidden', 'false');
+  requestAnimationFrame(function() { requestAnimationFrame(function() { el.classList.add('show'); }); });
+  if (APK_TOAST_AUTOHIDE_MS > 0) setTimeout(function() { dismissApkToast(el, 'up'); }, APK_TOAST_AUTOHIDE_MS);
+}
+
+// ── Jalankan antrean ──
+function startPopupFlow(opts) {
+  var steps = [];
+  if (opts.showInfo) steps.push(function(done) { openInfoModal(done); });
+  if (opts.showInfo || opts.freshLogin) {
+    steps.push(function(done) {
+      waLinksPromise.then(function() {
+        // Sudah join keduanya (atau tidak ada link) -> lewati popup
+        if (refreshWaButtons() === 0) { done(); return; }
+        openChannelModal(done);
+      });
+    });
+  }
+  if (opts.freshLogin && (!APK_TOAST_ANDROID_ONLY || /Android/i.test(navigator.userAgent))) {
+    steps.push(function(done) {
+      ApkPromo.getInfo().then(function(info) {
+        if (!info.apk) return;
+        // Sudah download versi terbaru -> tidak perlu ditawari lagi
+        if (info.apk.user_downloaded && !info.apk.has_update) return;
+        showApkToast(info.apk);
+      });
+      done();
+    });
+  }
+  var i = 0;
+  function next() {
+    if (i >= steps.length) return;
+    steps[i++](function() { setTimeout(next, POPUP_STEP_GAP_MS); });
+  }
+  if (steps.length) setTimeout(next, POPUP_FIRST_DELAY_MS);
+}
+</script>
+<script>
+// ── Sembunyikan / tampilkan saldo (pilihan diingat di perangkat ini) ──
+const HIDE_BAL_KEY = 'dash_hide_balance';
+let heroBalanceValue = 0;
+let heroBalanceHidden = false;
+try { heroBalanceHidden = localStorage.getItem(HIDE_BAL_KEY) === '1'; } catch (e) {}
+
+function paintHeroBalance() {
+  const el = document.getElementById('hero-balance');
+  const btn = document.getElementById('wallet-eye');
+  const icon = document.getElementById('wallet-eye-icon');
+  if (!el || !btn || !icon) return;
+  el.textContent = heroBalanceHidden ? 'Rp ••••••' : formatRupiah(heroBalanceValue);
+  el.classList.toggle('is-hidden', heroBalanceHidden);
+  icon.className = 'fas ' + (heroBalanceHidden ? 'fa-eye-slash' : 'fa-eye');
+  btn.setAttribute('aria-pressed', heroBalanceHidden ? 'true' : 'false');
+  btn.setAttribute('aria-label', heroBalanceHidden ? 'Tampilkan saldo' : 'Sembunyikan saldo');
+}
+function setHeroBalance(v) { heroBalanceValue = v; paintHeroBalance(); }
+document.getElementById('wallet-eye').addEventListener('click', () => {
+  heroBalanceHidden = !heroBalanceHidden;
+  try { localStorage.setItem(HIDE_BAL_KEY, heroBalanceHidden ? '1' : '0'); } catch (e) {}
+  paintHeroBalance();
+});
+paintHeroBalance();
+
+// ── Banner promo: carousel geser + titik + auto-slide ──
+let promoTimer = null;
+function renderPromoBanners(items) {
+  const wrap = document.getElementById('promo-carousel');
+  const track = document.getElementById('promo-track');
+  const dots = document.getElementById('promo-dots');
+  clearInterval(promoTimer);
+  if (!items || !items.length) { wrap.style.display = 'none'; track.innerHTML = ''; dots.innerHTML = ''; return; }
+
+  const safeUrl = (u) => /^https?:\/\//i.test(u || '') ? u : '';
+  track.innerHTML = items.map(b => {
+    const img = `<img src="${escapeHtml(b.image)}" alt="${escapeHtml(b.title || 'Banner')}" loading="lazy" draggable="false">`;
+    const link = safeUrl(b.link);
+    return link
+      ? `<a class="promo-slide" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${img}</a>`
+      : `<div class="promo-slide">${img}</div>`;
+  }).join('');
+  dots.innerHTML = items.length > 1 ? items.map((_, i) => `<span class="promo-dot${i === 0 ? ' active' : ''}"></span>`).join('') : '';
+  wrap.style.display = 'block';
+  if (items.length < 2) return;
+
+  const dotEls = [...dots.children];
+  const slideW = () => track.clientWidth;
+  const current = () => Math.max(0, Math.min(items.length - 1, Math.round(track.scrollLeft / (slideW() || 1))));
+  const sync = () => { const c = current(); dotEls.forEach((d, i) => d.classList.toggle('active', i === c)); };
+  track.addEventListener('scroll', sync, { passive: true });
+
+  const next = () => {
+    const n = (current() + 1) % items.length;
+    track.scrollTo({ left: n * slideW(), behavior: 'smooth' });
+  };
+  const start = () => { clearInterval(promoTimer); promoTimer = setInterval(next, 3500); };
+  ['touchstart', 'mouseenter'].forEach(ev => track.addEventListener(ev, () => clearInterval(promoTimer), { passive: true }));
+  ['touchend', 'mouseleave'].forEach(ev => track.addEventListener(ev, start, { passive: true }));
+  start();
+}
+</script>
+<script>
+let txChart = null;
+
+async function loadDashboard() {
+  const res = await Auth.check();
+  if (!res) return;
+  Auth.renderUserInfo(res.user, res.wallet);
+
+  // Baru cek "baru balik dari offline" SETELAH auth dipastikan valid, biar
+  // nggak kepanggil di halaman login/redirect.
+  const wasOffline = Heartbeat.checkOffline(OFFLINE_THRESHOLD_MS);
+  Heartbeat.start();
+  // Sekali pakai: true hanya di kunjungan pertama setelah login/daftar.
+  const freshLogin = FreshLogin.consume();
+
+  const data = await API.get('/api/user/dashboard');
+  if (!data.success) return;
+
+  const { wallet, stats, deposit_summary, chart, recent_transactions, info_banners, promo_banners, marquee } = data;
+
+  // ── Modal Informasi Layanan ──
+  const hasInfo = renderInfoModal(info_banners);
+  currentInfoBannerIds = (info_banners || []).map(b => b.id).join(',');
+  const seenIds = localStorage.getItem(INFO_SEEN_KEY) || '';
+  const hasUnseenInfo = hasInfo && currentInfoBannerIds !== seenIds;
+  startPopupFlow({
+    showInfo: hasInfo && (wasOffline || hasUnseenInfo),
+    freshLogin: freshLogin,
+  });
+
+  // ── Marquee sambutan (satu baris, berjalan ke samping) ──
+  const marqueeEl = document.getElementById('dash-marquee');
+  if (marquee && marquee.enabled && marquee.text) {
+    document.getElementById('dash-marquee-text-a').textContent = marquee.text;
+    document.getElementById('dash-marquee-text-b').textContent = marquee.text;
+    marqueeEl.style.display = 'flex';
+  } else {
+    marqueeEl.style.display = 'none';
+  }
+
+  // ── Banner promo (carousel) ──
+  renderPromoBanners(promo_banners);
+
+  setHeroBalance(wallet.balance);
+  document.getElementById('stat-deposit').textContent = formatRupiah(wallet.total_deposit);
+  if (deposit_summary) {
+    document.getElementById('stat-deposit-daily').textContent = formatRupiah(deposit_summary.daily);
+    document.getElementById('stat-deposit-weekly').textContent = formatRupiah(deposit_summary.weekly);
+    document.getElementById('stat-deposit-monthly').textContent = formatRupiah(deposit_summary.monthly);
+  }
+  document.getElementById('stat-withdraw').textContent = formatRupiah(wallet.total_withdraw);
+  document.getElementById('stat-tx').textContent = stats.total_transactions;
+  document.getElementById('stat-today').textContent = stats.today_transactions;
+
+  const ctx = document.getElementById('txChart').getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const chartHeight = ctx.canvas.parentElement.clientHeight || 260;
+
+  // Gradient fill (bukan warna solid transparan) biar area di bawah garis
+  // terlihat lebih halus & modern, senada dengan hero card di atasnya.
+  const gradientIncome = ctx.createLinearGradient(0, 0, 0, chartHeight);
+  gradientIncome.addColorStop(0, 'rgba(16,185,129,.28)');
+  gradientIncome.addColorStop(1, 'rgba(16,185,129,0)');
+
+  const gradientOutcome = ctx.createLinearGradient(0, 0, 0, chartHeight);
+  gradientOutcome.addColorStop(0, 'rgba(239,68,68,.22)');
+  gradientOutcome.addColorStop(1, 'rgba(239,68,68,0)');
+
+  // Deteksi apakah semua data masih kosong, supaya sumbu Y tidak
+  // menampilkan skala imajiner (Rp -1 s/d Rp 1) saat belum ada transaksi.
+  const maxVal = Math.max(...chart.map(d => Math.max(d.income, d.outcome)), 0);
+
+  txChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chart.map(d => new Date(d.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })),
+      datasets: [
+        {
+          label: 'Masuk', data: chart.map(d => d.income),
+          borderColor: '#10b981', backgroundColor: gradientIncome,
+          fill: true, borderWidth: 2.5,
+          cubicInterpolationMode: 'monotone', tension: 0.35,
+          borderCapStyle: 'round', borderJoinStyle: 'round',
+          pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20,
+          pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 2,
+        },
+        {
+          label: 'Keluar', data: chart.map(d => d.outcome),
+          borderColor: '#ef4444', backgroundColor: gradientOutcome,
+          fill: true, borderWidth: 2.5,
+          cubicInterpolationMode: 'monotone', tension: 0.35,
+          borderCapStyle: 'round', borderJoinStyle: 'round',
+          pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20,
+          pointBackgroundColor: '#fff', pointBorderColor: '#ef4444', pointBorderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      animation: { duration: 700, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : '#fff',
+          titleColor: isDark ? '#f1f5f9' : '#0f172a',
+          bodyColor: isDark ? '#cbd5e1' : '#334155',
+          borderColor: isDark ? '#334155' : '#e2e8f0', borderWidth: 1,
+          padding: 10, cornerRadius: 10, displayColors: true, boxPadding: 4,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${formatRupiah(ctx.parsed.y)}` },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: {
+          beginAtZero: true,
+          suggestedMax: maxVal > 0 ? undefined : 100000,
+          grid: { color: isDark ? '#334155' : '#f1f5f9', drawTicks: false },
+          border: { display: false },
+          ticks: {
+            font: { size: 11 }, padding: 8, maxTicksLimit: 5,
+            callback: v => v === 0 ? 'Rp 0' : 'Rp ' + (v / 1000 >= 1 ? (v / 1000) + 'K' : v),
+          },
+        },
+      },
+    },
+  });
+
+  // ── Legend custom (bukan bawaan Chart.js) ──
+  // Teks langsung berwarna sesuai dataset (Masuk = hijau, Keluar = merah),
+  // tanpa kotak/lingkaran warna. Saat diklik untuk toggle tampil/sembunyi,
+  // teksnya berubah abu-abu (var(--text-muted)) tanpa efek coret (strikethrough).
+  const legendEl = document.getElementById('chart-legend');
+  const legendColors = ['#10b981', '#ef4444'];
+  legendEl.innerHTML = txChart.data.datasets.map((ds, i) => `
+    <span class="chart-legend-item" data-index="${i}" style="color:${legendColors[i]}">${ds.label}</span>
+  `).join('');
+
+  legendEl.querySelectorAll('.chart-legend-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const index = Number(el.dataset.index);
+      const meta = txChart.getDatasetMeta(index);
+      meta.hidden = meta.hidden === null ? !txChart.data.datasets[index].hidden : null;
+      const isHidden = meta.hidden === true;
+      el.style.color = isHidden ? 'var(--text-muted)' : legendColors[index];
+      txChart.update();
+    });
+  });
+
+  // Halaman 1 dirender langsung dari data dashboard (biar gak ada request
+  // tambahan pas load awal); halaman berikutnya diambil lewat
+  // loadRecentTxPage() yang manggil endpoint /api/user/transactions yang
+  // sudah mendukung pagination (dipakai juga di history.html).
+  renderRecentTxRows(recent_transactions);
+  recentTxTotalPages = Math.max(1, Math.ceil((stats.total_transactions || 0) / RECENT_TX_LIMIT));
+  renderPagination('recent-tx-pagination', 1, recentTxTotalPages, loadRecentTxPage);
+  document.getElementById('recent-tx-page-info').textContent =
+    recentTxTotalPages > 1 ? `Halaman 1 dari ${recentTxTotalPages}` : '';
+}
+
+const RECENT_TX_LIMIT = 10;
+let recentTxTotalPages = 1;
+
+function renderRecentTxRows(rows) {
+  const container = document.getElementById('recent-tx-list');
+  if (!rows.length) {
+    container.innerHTML = `<div class="tx-empty"><i class="fas fa-inbox" style="font-size:34px;display:block;margin-bottom:10px"></i>Belum ada transaksi. Mulai dengan Top Up.</div>`;
+    return;
+  }
+  const icons = { deposit: 'fa-arrow-down', withdraw: 'fa-arrow-up', adjustment: 'fa-sliders' };
+  container.innerHTML = '<div class="tx-stack">' + rows.map(tx => {
+    // Aturan tanda & warna sama seperti sebelumnya: 'deposit' = masuk (+),
+    // 'adjustment' ikut tx.direction, tipe lain = keluar (-).
+    let sign;
+    if (tx.type === 'deposit') {
+      sign = '+';
+    } else if (tx.type === 'adjustment') {
+      sign = tx.direction === 'same' ? '' : (tx.direction === 'in' ? '+' : '-');
+    } else {
+      sign = '-';
+    }
+    const updated = (tx.updatedAt && tx.updatedAt !== tx.createdAt)
+      ? `<div class="tx-meta">Update: ${formatDate(tx.updatedAt)}</div>` : '';
+    return `
+    <div class="tx-card">
+      <span class="tx-ico"><i class="fas ${icons[tx.type] || 'fa-receipt'}"></i></span>
+      <div class="tx-title">${tx.description}</div>
+      <div class="tx-date">${formatDate(tx.createdAt)}</div>
+      <div class="tx-amount">${sign}${formatRupiah(tx.amount)}</div>
+      <div class="tx-status">${statusBadge(tx.status)}</div>
+      ${updated}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// Dipanggil pas user klik nomor halaman di bawah kartu "Transaksi Terbaru".
+// Pakai endpoint /api/user/transactions (sama kayak history.html) yang
+// support page & limit, jadi kartu ini tetap max 10 baris per halaman
+// walaupun total transaksi user banyak.
+async function loadRecentTxPage(page) {
+  const container = document.getElementById('recent-tx-list');
+  container.innerHTML = '<div class="loading-spinner"></div>';
+  const res = await API.get(`/api/user/transactions?page=${page}&limit=${RECENT_TX_LIMIT}`);
+  if (!res.success) return;
+  renderRecentTxRows(res.data);
+  recentTxTotalPages = res.pages || 1;
+  renderPagination('recent-tx-pagination', res.page, recentTxTotalPages, loadRecentTxPage);
+  document.getElementById('recent-tx-page-info').textContent =
+    recentTxTotalPages > 1 ? `Halaman ${res.page} dari ${recentTxTotalPages}` : '';
+}
+
+function updateGrid() {
+  const grid = document.getElementById('dashboard-grid');
+  if (window.innerWidth < 900) grid.style.gridTemplateColumns = '1fr';
+  else grid.style.gridTemplateColumns = '1fr 1fr';
+}
+window.addEventListener('resize', updateGrid);
+updateGrid();
+
+loadDashboard();
+
+// Pastikan button wallet bisa diklik
+document.addEventListener('DOMContentLoaded', function() {
+  var btnTopup   = document.getElementById('btn-topup');
+  var btnWithdraw = document.getElementById('btn-withdraw');
+  var btnHistory = document.getElementById('btn-history');
+  var btnAll     = document.getElementById('btn-all');
+  if (btnTopup)    btnTopup.addEventListener('click', function(e){ e.stopPropagation(); window.location.href='/deposit'; });
+  if (btnWithdraw) btnWithdraw.addEventListener('click', function(e){ e.stopPropagation(); window.location.href='/withdraw'; });
+  if (btnHistory)  btnHistory.addEventListener('click', function(e){ e.stopPropagation(); window.location.href='/history'; });
+  if (btnAll)      btnAll.addEventListener('click', function(e){ e.stopPropagation(); window.location.href='/overview'; });
+});
+</script>
+</body>
+</html>

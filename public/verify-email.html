@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#c9f3e4">
+<title>Verifikasi Email — AustinPay</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/austin-ui.css">
+  <link rel="stylesheet" href="/css/austin-desktop.css">
+  <link rel="stylesheet" href="/fa/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon"><i class="fas fa-envelope-circle-check"></i></div>
+      <h1>Verifikasi Email</h1>
+      <p>Kami mengirim kode 6 digit ke <b id="email-shown">email kamu</b></p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <form id="verify-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label">Kode Verifikasi</label>
+        <input type="text" class="form-control" id="code" inputmode="numeric" pattern="\d*" maxlength="6"
+               placeholder="123456" autocomplete="one-time-code"
+               style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:700" required>
+        <p class="form-hint">Kode berlaku 10 menit. Cek juga folder spam/promosi.</p>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg mt-8" id="verify-btn">
+        <i class="fas fa-check"></i> Verifikasi
+      </button>
+    </form>
+
+    <div class="divider"></div>
+    <p class="text-sm text-muted" style="text-align:center">
+      Belum menerima kode?
+      <button type="button" id="resend-btn" class="btn btn-outline btn-sm" style="margin-left:6px">Kirim ulang kode</button>
+    </p>
+    <p class="text-sm text-muted" style="text-align:center;margin-top:12px">
+      <a href="/register" style="color:var(--primary);font-weight:600">Salah email? Daftar ulang</a>
+      &nbsp;·&nbsp;
+      <a href="/login" style="color:var(--primary);font-weight:600">Ke halaman login</a>
+    </p>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/dock.js"></script>
+<script>
+  const RESEND_COOLDOWN = 60;
+  const alertBox = document.getElementById('alert-box');
+  const codeInput = document.getElementById('code');
+  const resendBtn = document.getElementById('resend-btn');
+  let resendTimer = null;
+
+  let email = '';
+  let sentFlag = '1';
+  let trustDevice = false;
+  try {
+    email = sessionStorage.getItem('verify_email') || '';
+    sentFlag = sessionStorage.getItem('verify_sent') || '1';
+    trustDevice = sessionStorage.getItem('verify_trust') === '1';
+  } catch (err) {}
+  if (!email) window.location.replace('/login');
+
+  function maskEmail(e) {
+    const [name, domain] = String(e).split('@');
+    if (!domain) return e;
+    const shown = name.length <= 2 ? name[0] || '' : name.slice(0, 2);
+    return shown + '*'.repeat(Math.max(name.length - shown.length, 1)) + '@' + domain;
+  }
+  document.getElementById('email-shown').textContent = maskEmail(email);
+
+  function showAlert(type, msg) {
+    const icon = type === 'success' ? 'check-circle' : (type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle');
+    alertBox.innerHTML = '<div class="alert alert-' + type + '"><i class="fas fa-' + icon + '"></i> </div>';
+    alertBox.firstChild.appendChild(document.createTextNode(msg));
+  }
+
+  function startCooldown(seconds) {
+    clearInterval(resendTimer);
+    let left = seconds;
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Kirim ulang (' + left + 's)';
+    resendTimer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        clearInterval(resendTimer);
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Kirim ulang kode';
+      } else {
+        resendBtn.textContent = 'Kirim ulang (' + left + 's)';
+      }
+    }, 1000);
+  }
+
+  if (sentFlag === '1') {
+    startCooldown(RESEND_COOLDOWN);
+  } else {
+    showAlert('warning', 'Email belum terkirim. Tekan "Kirim ulang kode" untuk mencoba lagi.');
+  }
+
+  codeInput.addEventListener('input', () => {
+    codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+  });
+
+  resendBtn.addEventListener('click', async () => {
+    alertBox.innerHTML = '';
+    resendBtn.disabled = true;
+    const res = await API.post('/api/auth/resend-verification', { email });
+    if (res.success) {
+      showAlert('success', res.message);
+      startCooldown(RESEND_COOLDOWN);
+    } else {
+      showAlert('danger', res.message || 'Gagal mengirim ulang kode');
+      if (res.retry_after) startCooldown(res.retry_after);
+      else resendBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('verify-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('verify-btn');
+    alertBox.innerHTML = '';
+    if (!/^\d{6}$/.test(codeInput.value)) {
+      showAlert('warning', 'Kode harus 6 digit angka');
+      return;
+    }
+    btnLoading(btn, true);
+    const res = await API.post('/api/auth/verify-email', { email, code: codeInput.value, trust_device: trustDevice });
+    btnLoading(btn, false);
+
+    if (res.success) {
+      try {
+        sessionStorage.removeItem('verify_email');
+        sessionStorage.removeItem('verify_sent');
+        sessionStorage.removeItem('verify_trust');
+      } catch (err) {}
+      Toast.success(res.message);
+      FreshLogin.mark();
+      setTimeout(() => { window.location.href = res.redirect || '/dashboard'; }, 600);
+    } else {
+      showAlert('danger', res.message || 'Verifikasi gagal');
+      if (res.redirect) setTimeout(() => { window.location.href = res.redirect; }, 1500);
+      codeInput.value = '';
+      codeInput.focus();
+    }
+  });
+</script>
+</body>
+</html>
