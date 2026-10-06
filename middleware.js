@@ -25,7 +25,7 @@ import { next } from '@vercel/edge';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
-const API_BASE_URL = (process.env.API_BASE_URL || 'https://api.austinstore.id').replace(/\/+$/, '');
+const API_BASE_URL = (process.env.API_BASE_URL || 'https://austinstore.id').replace(/\/+$/, '');
 const PROXY_SECRET = process.env.PROXY_SECRET || '';
 const encodedSecret = JWT_SECRET ? new TextEncoder().encode(JWT_SECRET) : null;
 
