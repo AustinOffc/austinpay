@@ -169,7 +169,7 @@ const LiveChat = {
       this._setConnectionBanner(true);
       return;
     }
-    this.socket = io(window.API_BASE_URL, { path: '/socket.io', withCredentials: true, reconnection: true });
+    this.socket = io(window.SOCKET_URL, window.socketOptions());
 
     if (window.Tickets) window.Tickets.init(this.currentUser, this.socket);
 

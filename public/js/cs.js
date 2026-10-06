@@ -251,7 +251,7 @@ const CustomerService = {
 
   _connectSocket() {
     if (typeof io === 'undefined') return;
-    this.socket = io(window.API_BASE_URL, { path: '/socket.io', withCredentials: true, reconnection: true });
+    this.socket = io(window.SOCKET_URL, window.socketOptions());
 
     this.socket.on('cs:new_message', (msg) => {
       if (!this.room || msg.room_id !== this.room.id) return;

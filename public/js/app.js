@@ -13,6 +13,24 @@ function apiUrl(path) {
 }
 window.apiUrl = apiUrl;
 
+// Socket.IO tersambung LANGSUNG ke backend (Vercel tidak meneruskan WebSocket). Karena cookie
+// login hanya ada di domain frontend, token pendek diambil dari /api/auth/socket-token
+// tiap (re)connect lewat opsi `auth`.
+window.SOCKET_URL = 'https://austinstore.id';
+window.socketOptions = function () {
+  return {
+    path: '/socket.io',
+    withCredentials: true,
+    reconnection: true,
+    auth: function (cb) {
+      fetch(apiUrl('/api/auth/socket-token'), { credentials: 'include', cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { cb(d && d.token ? { token: d.token } : {}); })
+        .catch(function () { cb({}); });
+    },
+  };
+};
+
 
 // Server menahan sesi dengan HTTP 423 + code:
 //  - PIN_REQUIRED       : idle > 24 jam, cukup masukkan PIN (bukan logout)

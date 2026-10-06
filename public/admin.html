@@ -3763,7 +3763,7 @@ document.getElementById('cs-room-input')?.addEventListener('keydown', (e) => {
 
 function initCsRealtime() {
   if (typeof io === 'undefined') return;
-  const csSocket = io(window.API_BASE_URL, { path: '/socket.io', withCredentials: true, reconnection: true });
+  const csSocket = io(window.SOCKET_URL, window.socketOptions());
   csSocket.on('cs:new_room', () => { refreshCsOpenCount(); if (document.getElementById('section-csrooms')?.classList.contains('active')) loadCsRooms(1); });
   csSocket.on('cs:new_message', (m) => {
     refreshCsOpenCount();
