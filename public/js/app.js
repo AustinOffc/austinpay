@@ -3,9 +3,9 @@
 // '/api/...' dibuat absolut ke domain backend (lewat Cloudflare Tunnel, HTTPS).
 // Ini SATU-SATUNYA tempat yang perlu diubah kalau domain backend berganti
 // (selain rewrite di vercel.json dan env API_BASE_URL di Vercel).
-//   - Diisi domain backend (mis. https://api.austinstore.id)  -> mode langsung (disarankan)
+//   - Diisi domain backend (mis. https://austinstore.id)  -> mode langsung (disarankan)
 //   - Dikosongkan ''                                          -> semua /api lewat rewrite Vercel
-window.API_BASE_URL = 'https://api.austinstore.id'; // GANTI sesuai domain tunnel backend Anda
+window.API_BASE_URL = 'https://austinstore.id'; // GANTI sesuai domain tunnel backend Anda
 function apiUrl(path) {
   if (!path) return window.API_BASE_URL;
   if (/^https?:\/\//i.test(path)) return path; // sudah URL absolut, biarkan

@@ -155,23 +155,23 @@
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://api.austinstore.id/uploads/:path*"
+      "destination": "https://austinstore.id/uploads/:path*"
     },
     {
       "source": "/download/apk",
-      "destination": "https://api.austinstore.id/download/apk"
+      "destination": "https://austinstore.id/download/apk"
     },
     {
       "source": "/not-me/:token",
-      "destination": "https://api.austinstore.id/not-me/:token"
+      "destination": "https://austinstore.id/not-me/:token"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://api.austinstore.id/api/:path*"
+      "destination": "https://austinstore.id/api/:path*"
     },
     {
       "source": "/socket.io/:path*",
-      "destination": "https://api.austinstore.id/socket.io/:path*"
+      "destination": "https://austinstore.id/socket.io/:path*"
     },
     {
       "source": "/((?!.*\\.).*)",
