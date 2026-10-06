@@ -21,11 +21,19 @@ window.socketOptions = function () {
   return {
     path: '/socket.io',
     withCredentials: true,
+    transports: ['websocket', 'polling'],
     reconnection: true,
+    reconnectionDelay: 2000,       // jangan menghujani server tiap 1 detik
+    reconnectionDelayMax: 30000,   // makin lama makin jarang, maks 30 detik
+    randomizationFactor: 0.5,
     auth: function (cb) {
       fetch(apiUrl('/api/auth/socket-token'), { credentials: 'include', cache: 'no-store' })
-        .then(function (r) { return r.json(); })
-        .then(function (d) { cb(d && d.token ? { token: d.token } : {}); })
+        .then(function (r) { return r.text(); })
+        .then(function (t) {
+          var d = null;
+          try { d = JSON.parse(t); } catch (e) { /* balasan bukan JSON (mis. 429/502) */ }
+          cb(d && d.token ? { token: d.token } : {});
+        })
         .catch(function () { cb({}); });
     },
   };
