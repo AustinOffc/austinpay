@@ -5,7 +5,7 @@
 // (selain rewrite di vercel.json dan env API_BASE_URL di Vercel).
 //   - Diisi domain backend (mis. https://austinstore.id)  -> mode langsung (disarankan)
 //   - Dikosongkan ''                                          -> semua /api lewat rewrite Vercel
-window.API_BASE_URL = 'https://austinstore.id'; // GANTI sesuai domain tunnel backend Anda
+window.API_BASE_URL = ''; // '' = lewat Vercel (same-origin) supaya cookie login ikut terkirim di austinx.cloud
 function apiUrl(path) {
   if (!path) return window.API_BASE_URL;
   if (/^https?:\/\//i.test(path)) return path; // sudah URL absolut, biarkan
