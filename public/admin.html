@@ -934,6 +934,16 @@
                 <label class="form-label">File APK / ZIP</label>
                 <input type="file" class="form-control" id="apk-form-file" accept=".apk,.zip">
               </div>
+              <label class="text-sm" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer">
+                <input type="checkbox" id="apk-form-notify" checked>
+                <span>Kirim notifikasi push ke semua user (browser &amp; aplikasi)</span>
+              </label>
+              <div id="apk-progress-wrap" style="display:none;margin-bottom:12px">
+                <div style="height:12px;border:2px solid var(--text,#111);border-radius:999px;overflow:hidden;background:transparent">
+                  <div id="apk-progress-bar" style="height:100%;width:0;background:var(--primary)"></div>
+                </div>
+                <div class="text-xs text-muted" id="apk-progress-text" style="margin-top:6px">0%</div>
+              </div>
               <button class="btn btn-primary btn-sm" id="apk-upload-btn" onclick="uploadApk()"><i class="fas fa-upload"></i> Upload File</button>
             </div>
           </div>
@@ -4434,6 +4444,7 @@ async function loadApkInfo() {
   const res = await API.get('/api/admin/apk');
   const empty = document.getElementById('apk-current-empty');
   const detail = document.getElementById('apk-current-detail');
+  const box = document.getElementById('apk-info-alert');
   if (!res.success || !res.apk) {
     empty.style.display = 'block';
     detail.style.display = 'none';
@@ -4446,50 +4457,102 @@ async function loadApkInfo() {
   document.getElementById('apk-cur-version').textContent = apk.version || '-';
   document.getElementById('apk-cur-size').textContent = formatBytesAdmin(apk.size);
   document.getElementById('apk-cur-updated').textContent = apk.updated_at ? formatDate(apk.updated_at) : '-';
+  if (res.file_missing && box && !box.innerHTML.trim()) {
+    box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> File APK hilang dari server (data masih tercatat). Upload ulang supaya user bisa mengunduh.</div>`;
+  }
+}
+
+// Upload langsung ke domain backend (bukan lewat rewrite Vercel): rewrite Vercel
+// membatasi body request (~4,5MB), jadi APK 20MB+ ditolak sebelum sampai ke server.
+// Cookie login hanya ada di domain frontend, jadi dipakai token pendek (10 menit)
+// dari /api/auth/socket-token sebagai Bearer.
+async function getUploadAuth() {
+  try {
+    const r = await fetch(apiUrl('/api/auth/socket-token'), { credentials: 'include', cache: 'no-store' });
+    const d = await r.json();
+    if (d && d.success && d.token) return d.token;
+  } catch (e) {}
+  return null;
+}
+
+function sendApkForm(url, fd, token, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+    else xhr.withCredentials = true;
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100)); };
+    xhr.onload = () => {
+      let data = null;
+      try { data = JSON.parse(xhr.responseText); } catch (e) {}
+      resolve({ status: xhr.status, data });
+    };
+    xhr.onerror = () => reject(new Error('network'));
+    xhr.ontimeout = () => reject(new Error('timeout'));
+    xhr.timeout = 15 * 60 * 1000;
+    xhr.send(fd);
+  });
 }
 
 async function uploadApk() {
   const fileInput = document.getElementById('apk-form-file');
   const file = fileInput.files[0];
   const box = document.getElementById('apk-info-alert');
-  if (!file) {
-    box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> Pilih file APK/ZIP terlebih dahulu</div>`;
-    return;
-  }
+  const showErr = (msg) => { box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> ${escapeHtml(msg)}</div>`; };
+  if (!file) return showErr('Pilih file APK/ZIP terlebih dahulu');
   const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-  if (!['.apk', '.zip'].includes(ext)) {
-    box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> Format file harus .apk atau .zip</div>`;
-    return;
-  }
+  if (!['.apk', '.zip'].includes(ext)) return showErr('Format file harus .apk atau .zip');
+  if (file.size > 200 * 1024 * 1024) return showErr('Ukuran file maksimal 200MB');
 
   const fd = new FormData();
-  fd.append('apk', file);
   fd.append('version', document.getElementById('apk-form-version').value);
   fd.append('notes', document.getElementById('apk-form-notes').value);
+  fd.append('notify', document.getElementById('apk-form-notify').checked ? '1' : '0');
+  fd.append('apk', file); // file paling akhir supaya field teks sudah terbaca saat stream
 
   const btn = document.getElementById('apk-upload-btn');
+  const wrap = document.getElementById('apk-progress-wrap');
+  const bar = document.getElementById('apk-progress-bar');
+  const txt = document.getElementById('apk-progress-text');
   btn.disabled = true;
   btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Mengupload...`;
+  box.innerHTML = '';
+  wrap.style.display = 'block';
+  bar.style.width = '0'; txt.textContent = '0%';
+
+  const onProgress = (pct) => {
+    bar.style.width = pct + '%';
+    txt.textContent = pct >= 100 ? 'Memproses di server...' : pct + '%';
+  };
 
   try {
-    const response = await fetch(apiUrl('/api/admin/apk'), { method: 'POST', body: fd, credentials: 'include' });
-    const res = await response.json();
-    if (res.success) {
-      box.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${res.message}</div>`;
-      Toast.success(res.message);
+    const token = await getUploadAuth();
+    const direct = (window.SOCKET_URL || '').replace(/\/$/, '');
+    const url = token && direct ? direct + '/api/admin/apk' : apiUrl('/api/admin/apk');
+    const { status, data } = await sendApkForm(url, fd, token, onProgress);
+    if (data && data.success) {
+      box.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> ${escapeHtml(data.message || 'Tersimpan')}</div>`;
+      Toast.success(data.message || 'Tersimpan');
       fileInput.value = '';
       document.getElementById('apk-form-version').value = '';
       document.getElementById('apk-form-notes').value = '';
       loadApkInfo();
     } else {
-      box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> ${res.message}</div>`;
-      Toast.error(res.message);
+      let msg = data && data.message;
+      if (!msg) {
+        if (status === 413) msg = 'File terlalu besar untuk jalur upload (413). Coba lagi.';
+        else if (status === 401 || status === 403) msg = 'Sesi admin habis, muat ulang halaman lalu login lagi.';
+        else msg = `Server menolak upload (HTTP ${status || '?'}).`;
+      }
+      showErr(msg);
+      Toast.error(msg);
     }
   } catch (err) {
-    box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> Upload gagal, periksa koneksi</div>`;
+    showErr('Upload gagal, periksa koneksi lalu coba lagi.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<i class="fas fa-upload"></i> Upload File`;
+    setTimeout(() => { wrap.style.display = 'none'; }, 1500);
   }
 }
 

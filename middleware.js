@@ -131,7 +131,7 @@ function cspHeader(nonce, handlerHashes) {
     "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net",
     "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net data:",
     "img-src 'self' data: https:",
-    `connect-src 'self' ${API_BASE_URL} ws: wss: challenges.cloudflare.com`,
+    `connect-src 'self' ${API_BASE_URL} https://austinstore.id ws: wss: challenges.cloudflare.com`,
     "frame-src 'self' challenges.cloudflare.com",
     "base-uri 'self'",
     "form-action 'self'",
