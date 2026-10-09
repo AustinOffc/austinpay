@@ -465,7 +465,7 @@
           </div>
           <div class="table-wrapper">
             <table class="table">
-              <thead><tr><th>User</th><th>Provider</th><th>Tujuan</th><th>Produk</th><th>Nominal WD</th><th>Fee Admin</th><th>Total Dipotong</th><th>Status</th><th>Waktu</th></tr></thead>
+              <thead><tr><th>User</th><th>Provider</th><th>Tujuan</th><th>Produk</th><th>Nominal WD</th><th>Fee Admin</th><th>Total Dipotong</th><th>Sumber / IP</th><th>Status</th><th>Waktu</th><th></th></tr></thead>
               <tbody id="wdh-h-instant-tbody"></tbody>
             </table>
           </div>
@@ -520,7 +520,7 @@
           </div>
           <div class="table-wrapper">
             <table class="table">
-              <thead><tr><th>User</th><th>Provider</th><th>Tujuan</th><th>Produk</th><th>Nominal WD</th><th>Fee Admin</th><th>Total Dipotong</th><th>Status</th><th>Waktu</th></tr></thead>
+              <thead><tr><th>User</th><th>Provider</th><th>Tujuan</th><th>Produk</th><th>Nominal WD</th><th>Fee Admin</th><th>Total Dipotong</th><th>Sumber / IP</th><th>Status</th><th>Waktu</th><th></th></tr></thead>
               <tbody id="wdh-a-instant-tbody"></tbody>
             </table>
           </div>
@@ -1407,6 +1407,17 @@
       <button class="modal-close" onclick="Modal.close('sa-modal')">&times;</button>
     </div>
     <div class="modal-body" id="sa-modal-body" style="max-height:78vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Detail Withdraw Instant Modal -->
+<div class="modal-overlay" id="iwd-modal">
+  <div class="modal" style="max-width:680px;width:96vw">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-bolt" style="color:var(--primary)"></i> Detail Withdraw Instant</span>
+      <button class="modal-close" onclick="Modal.close('iwd-modal')">&times;</button>
+    </div>
+    <div class="modal-body" id="iwd-modal-body" style="max-height:78vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -2679,6 +2690,12 @@ function renderWdManualRows(tbody, rows) {
   `).join('') || `<tr><td colspan="6" class="table-empty">Tidak ada data</td></tr>`;
 }
 
+function iwSourceBadge(src) {
+  if (src === 'api') return '<span class="badge badge-warning"><i class="fas fa-key"></i> API</span>';
+  if (src === 'website') return '<span class="badge badge-info"><i class="fas fa-globe"></i> Website</span>';
+  return '<span class="badge badge-secondary" title="Dibuat sebelum pencatatan sumber aktif — klik Detail untuk penelusuran log">Lama</span>';
+}
+
 function renderWdInstantRows(tbody, rows) {
   tbody.innerHTML = rows.map(w => `
     <tr>
@@ -2689,10 +2706,101 @@ function renderWdInstantRows(tbody, rows) {
       <td style="font-weight:700">${formatRupiah(w.nominal ?? w.amount)}</td>
       <td class="text-warning">${formatRupiah(w.fee_admin)}</td>
       <td style="font-weight:700">${formatRupiah(w.total ?? w.sell_price)}</td>
+      <td>${iwSourceBadge(w.source)}${w.request_ip ? `<br><code style="font-size:11px">${escapeHtml(w.request_ip)}</code>` : ''}${w.api_key_name ? `<br><span class="text-xs text-muted">${escapeHtml(w.api_key_name)}</span>` : ''}</td>
       <td>${statusBadge(w.status)}</td>
       <td class="text-xs text-muted">${formatDate(w.createdAt)}</td>
+      <td><button type="button" class="btn btn-outline btn-sm" onclick="openIwDetail('${escapeHtml(w.id)}')"><i class="fas fa-circle-info"></i> Detail</button></td>
     </tr>
-  `).join('') || `<tr><td colspan="9" class="table-empty">Tidak ada data</td></tr>`;
+  `).join('') || `<tr><td colspan="11" class="table-empty">Tidak ada data</td></tr>`;
+}
+
+// ── Detail lengkap 1 withdraw instant (sumber request, IP, API key, saldo, provider) ──
+const IW_AUTH_MODE = { query: 'Query ?apikey=', 'x-api-key': 'Header X-API-Key', bearer: 'Authorization: Bearer' };
+const IW_FINAL_VIA = { create: 'Langsung saat request dibuat', callback: 'Callback OkeConnect', sync: 'Sinkronisasi status otomatis' };
+
+async function openIwDetail(id) {
+  const body = document.getElementById('iwd-modal-body');
+  body.innerHTML = '<div class="loading-spinner"></div>';
+  Modal.open('iwd-modal');
+  const r = await API.get('/api/admin/instant-withdraw/' + encodeURIComponent(id));
+  if (!r.success) {
+    body.innerHTML = `<div class="alert alert-danger">${escapeHtml(r.message || 'Gagal memuat detail')}</div>`;
+    return;
+  }
+  const d = r.data, q = d.request || {}, k = d.api_key, e = escapeHtml;
+  const dash = (v) => (v === null || v === undefined || v === '' ? '<span class="text-muted">-</span>' : v);
+  const code = (v) => (v ? `<code style="font-size:12px">${e(v)}</code>` : dash(''));
+  const kv = (label, val) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed var(--border);font-size:13px"><span class="text-muted" style="flex-shrink:0">${label}</span><span style="text-align:right;word-break:break-all;font-weight:600">${val}</span></div>`;
+  const sec = (title, icon, rows, note = '') => `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-header"><span class="card-title" style="font-size:13px"><i class="fas ${icon}" style="color:var(--primary)"></i> ${title}</span></div>
+      <div class="card-body" style="padding:4px 14px 10px">${note}${rows.join('')}</div>
+    </div>`;
+
+  const reqRows = [
+    kv('Sumber', iwSourceBadge(q.source === 'unknown' ? null : q.source) + (q.source === 'unknown' ? ' <span class="text-xs text-muted">tidak diketahui</span>' : '')),
+    kv('IP Request', code(q.ip)),
+    kv('Endpoint', q.request_method ? code(`${q.request_method} ${q.request_path || ''}`) : dash('')),
+    kv('Perangkat / User-Agent', q.user_agent ? `<span class="text-xs">${e(q.user_agent)}</span>` : dash('')),
+  ];
+  if (q.source === 'api') {
+    reqRows.push(kv('Cara kirim API key', dash(IW_AUTH_MODE[q.api_auth_mode] || q.api_auth_mode)));
+    reqRows.push(kv('Signature HMAC', q.api_signed === undefined ? dash('') : (q.api_signed ? 'Ya (X-Signature dikirim)' : 'Tidak')));
+    if (k) {
+      reqRows.push(kv('API Key', `${e(k.name || '-')} <code style="font-size:11px">…${e(k.last4 || '----')}</code> ${statusBadge(k.status)}`));
+      reqRows.push(kv('HMAC secret di key', k.hmac_aktif ? 'Aktif' : 'Tidak aktif'));
+      reqRows.push(kv('Terakhir dipakai', `${k.last_used_at ? formatDate(k.last_used_at) : '-'}${k.last_used_ip ? ' · ' + code(k.last_used_ip) : ''}`));
+    } else {
+      reqRows.push(kv('API Key', dash('')));
+    }
+  } else if (q.source === 'website') {
+    reqRows.push(kv('Verifikasi PIN', q.pin_verified ? 'Lolos' : '-'));
+    reqRows.push(kv('Origin', code(q.origin)));
+    reqRows.push(kv('Referer', code(q.referer)));
+  }
+  const srcNote = q.source_note ? `<div class="text-xs text-muted" style="padding:8px 0 4px">${e(q.source_note)}</div>` : '';
+
+  const hasSaldo = d.saldo && d.saldo.sebelum !== null && d.saldo.sesudah !== null;
+
+  body.innerHTML = `
+    ${sec('Ringkasan', 'fa-receipt', [
+      kv('Status', statusBadge(d.status)),
+      kv('ID', code(d.id)),
+      kv('Dibuat', formatDate(d.createdAt)),
+      kv('Update terakhir', formatDate(d.updatedAt)),
+      kv('Selesai', d.finalized_at ? `${formatDate(d.finalized_at)}${d.finalized_via ? ` <span class="text-xs text-muted">(${e(IW_FINAL_VIA[d.finalized_via] || d.finalized_via)})</span>` : ''}` : dash('')),
+      kv('Saldo dikembalikan', d.refunded ? 'Ya (refund)' : 'Tidak'),
+    ])}
+    ${sec('Sumber Request', 'fa-globe', reqRows, srcNote)}
+    ${sec('User', 'fa-user', [
+      kv('Username', e(d.user.username)),
+      kv('Nama', e(d.user.full_name)),
+      kv('Email', dash(e(d.user.email || ''))),
+      kv('Saldo sekarang', d.user.saldo_sekarang === null ? dash('') : formatRupiah(d.user.saldo_sekarang)),
+    ])}
+    ${sec('Tujuan & Produk', 'fa-wallet', [
+      kv('E-wallet', e(d.tujuan.wallet || '-')),
+      kv('Nomor tujuan', code(d.tujuan.nomor)),
+      kv('Produk', e(d.produk.name || '-')),
+      kv('Kode produk', code(d.produk.code)),
+      kv('Nominal WD', formatRupiah(d.produk.nominal)),
+    ])}
+    ${sec('Biaya & Saldo', 'fa-coins', [
+      kv('Harga modal (provider)', formatRupiah(d.harga.cost_price)),
+      kv('Total dipotong dari user', formatRupiah(d.harga.sell_price)),
+      kv('Fee admin', `<span class="text-warning">${formatRupiah(d.harga.fee_admin)}</span>`),
+      kv('Saldo user sebelum', hasSaldo ? formatRupiah(d.saldo.sebelum) : dash('')),
+      kv('Saldo user sesudah dipotong', hasSaldo ? formatRupiah(d.saldo.sesudah) : dash('')),
+    ], hasSaldo ? '' : '<div class="text-xs text-muted" style="padding:8px 0 4px">Saldo sebelum/sesudah tidak tercatat untuk withdraw lama.</div>')}
+    ${sec('Provider', 'fa-server', [
+      kv('Provider', e((d.provider.name || '-').toUpperCase())),
+      kv('Ref ID (kita)', code(d.provider.trxid)),
+      kv('No. transaksi provider', code(d.provider.trx_number)),
+      kv('Respons / catatan', d.provider.response ? `<span class="text-xs">${e(d.provider.response)}</span>` : dash('')),
+      kv('ID transaksi (riwayat user)', code(d.transaction && d.transaction.id)),
+    ], '')}
+    ${d.provider.raw_response ? `<div class="text-xs text-muted" style="margin:0 2px 4px">Respons mentah provider</div><pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;background:var(--border);padding:10px;border-radius:8px;margin:0">${e(d.provider.raw_response)}</pre>` : ''}
+  `;
 }
 
 function switchWdhSubTab(prefix, tab) {
