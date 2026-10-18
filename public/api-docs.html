@@ -1475,7 +1475,8 @@ console.log(data);</code></pre>
             <div class="blk">Response</div>
             <div class="code-wrap">
               <div class="code-header"><div class="code-header-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div><span class="code-lang">json · 200 OK</span><button type="button" class="copy-btn"><i class="fas fa-copy"></i> Copy</button></div>
-              <pre class="code-block"><code data-json>{"success":true,"message":"Request withdraw berhasil dikirim. Menunggu persetujuan admin.","withdraw_id":"uuid"}</code></pre>
+              <pre class="code-block"><code data-json>{"success":true,"message":"Request withdraw berhasil dikirim. Menunggu persetujuan admin.","merged":false,"withdraw_id":"uuid"}</code></pre>
+                <p class="text-muted" style="font-size:12px;margin-top:8px">Jika masih ada request withdraw <b>pending</b> ke rekening/e-wallet yang sama, nominal otomatis digabung ke request tersebut (<code>merged:true</code>, plus <code>total_amount</code>) sehingga hanya ada satu request per tujuan.</p>
             </div>
             <div class="note note-warn">
               <i class="fas fa-exclamation-triangle"></i>
