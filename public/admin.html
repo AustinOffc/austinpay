@@ -533,13 +533,15 @@
         <div class="card mb-16">
           <div class="card-header">
             <span class="card-title"><i class="fas fa-wallet" style="color:var(--primary)"></i> Saldo Akun OkeConnect</span>
-            <button type="button" class="btn btn-outline btn-sm" onclick="loadOkeconnectStatus()"><i class="fas fa-rotate"></i> Refresh</button>
+            <button type="button" class="btn btn-primary btn-sm" id="oc-refresh-btn" onclick="refreshOkeconnectSaldo()"><i class="fas fa-rotate"></i> Refresh Saldo</button>
           </div>
           <div class="card-body">
             <div id="okeconnect-status-error" class="text-xs" style="color:var(--danger);display:none;margin-bottom:8px"></div>
             <div class="stats-grid">
               <div class="stat-card"><div class="stat-icon green"><i class="fas fa-wallet"></i></div><div class="stat-info"><div class="stat-label">Saldo</div><div class="stat-value" id="oc-saldo">-</div></div></div>
             </div>
+            <div id="oc-saldo-status" class="text-xs" style="margin-top:10px;display:none"></div>
+            <div class="text-xs text-muted" style="margin-top:6px">Saldo Rp 10.000 atau kurang = Withdraw Instan &amp; Bebas Nominal dimatikan sementara. Setelah isi saldo, klik Refresh Saldo agar fitur aktif lagi.</div>
           </div>
         </div>
 
@@ -641,6 +643,24 @@
             </table>
           </div>
           <div class="pagination"><span class="pagination-info" id="apikeys-page-info"></span><div class="pagination-nav" id="apikeys-pagination"></div></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <span class="card-title"><i class="fas fa-bolt" style="color:var(--warning)"></i> Akses API Withdraw Instan</span>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-control" id="iwd-api-username" placeholder="Username / email user..." style="width:210px" onkeydown="if(event.key==='Enter')addInstantWdApiUser()">
+              <button class="btn btn-primary btn-sm" id="iwd-api-add-btn" onclick="addInstantWdApiUser()"><i class="fas fa-plus"></i> Tambah</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding-bottom:0">
+            <div class="text-xs text-muted">API Withdraw Instan (termasuk bebas nominal) <strong>nonaktif untuk semua user</strong>. Hanya user di daftar ini yang bisa memakainya lewat API key. Withdraw instan lewat website tidak terpengaruh.</div>
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>User</th><th>Ditambahkan</th><th>Aksi</th></tr></thead>
+              <tbody id="iwd-api-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -1392,6 +1412,14 @@
               <button class="btn btn-outline" onclick="resetApiAbuseDefaults()" style="margin-left:6px">Isi nilai default</button>
             </div>
           </div>
+
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title"><i class="fas fa-rotate-left" style="color:var(--danger)"></i> Reset Overview</span></div>
+            <div class="card-body">
+              <div class="text-xs text-muted" style="margin-bottom:12px">Mengembalikan halaman <strong>Overview</strong> ke kondisi awal: Total Transaksi, Deposit/Withdraw, Traffic, Rata-rata Respons, dan Uptime kembali 0/default. Yang bertahan hanya <strong>Total User</strong>. Data transaksi dan saldo user <strong>tidak dihapus</strong>.</div>
+              <button class="btn btn-danger" onclick="openResetOverview()"><i class="fas fa-rotate-left"></i> Reset Overview</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1509,6 +1537,27 @@
 </div>
 
 
+
+<!-- Reset Overview Modal -->
+<div class="modal-overlay" id="reset-overview-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Reset Overview</span>
+      <button class="modal-close" onclick="Modal.close('reset-overview-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="text-sm" style="margin-bottom:12px">Semua angka Overview akan kembali 0 kecuali jumlah user. Aksi ini tidak bisa dibatalkan.</div>
+      <div class="form-group">
+        <label class="form-label">Password Admin</label>
+        <input type="password" class="form-control" id="reset-overview-password" placeholder="Masukkan password admin..." autocomplete="current-password">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="Modal.close('reset-overview-modal')">Batal</button>
+      <button class="btn btn-danger" id="reset-overview-btn" onclick="confirmResetOverview()"><i class="fas fa-rotate-left"></i> Reset Sekarang</button>
+    </div>
+  </div>
+</div>
 
 <!-- Reject Modal -->
 <div class="modal-overlay" id="reject-modal">
@@ -1672,7 +1721,7 @@ const sectionLoaders = {
   settings: () => { loadSettings(); loadApiAbuseConfig(); },
   'api-usage': () => { loadApiUsage(); loadApiRequests(1); },
   'email-logs': () => { loadEmailLogStats(); loadEmailLogs(1); },
-  apikeys: () => loadApiKeys(1), ipwhitelist: () => loadIpWhitelist(1),
+  apikeys: () => { loadApiKeys(1); loadInstantWdApiUsers(); }, ipwhitelist: () => loadIpWhitelist(1),
   notifications: () => loadNotifHistory(1),
   feedback: () => loadFeedback(1),
   csrooms: () => { loadCsRooms(1); loadCsStats(); },
@@ -2879,9 +2928,33 @@ async function loadOkeconnectStatus() {
   if (!res.success) {
     errEl.textContent = res.message || 'Gagal ambil saldo OkeConnect';
     errEl.style.display = 'block';
-    return;
+    return null;
   }
   document.getElementById('oc-saldo').textContent = formatRupiah(res.account.balance || 0);
+  const st = document.getElementById('oc-saldo-status');
+  const limit = Number(res.account.low_balance_limit || 10000);
+  st.style.display = 'block';
+  st.innerHTML = res.account.low_balance
+    ? `<span class="badge badge-danger"><i class="fas fa-triangle-exclamation"></i> Saldo habis (batas ${formatRupiah(limit)}) — Withdraw Instan nonaktif</span>`
+    : `<span class="badge badge-success"><i class="fas fa-circle-check"></i> Saldo aman — Withdraw Instan aktif</span>`;
+  return res;
+}
+
+// Tombol "Refresh Saldo": ambil saldo terbaru dari OkeConnect dan sinkronkan status
+// Withdraw Instan (dipakai setelah admin isi saldo).
+async function refreshOkeconnectSaldo() {
+  const btn = document.getElementById('oc-refresh-btn');
+  btnLoading(btn, true);
+  try {
+    const res = await loadOkeconnectStatus();
+    if (res && res.success !== false) {
+      Toast.success(res.account.low_balance ? 'Saldo diperbarui, masih di bawah batas.' : 'Saldo diperbarui, Withdraw Instan aktif.');
+    } else {
+      Toast.error('Gagal memperbarui saldo OkeConnect');
+    }
+  } finally {
+    btnLoading(btn, false);
+  }
 }
 
 async function loadOkeconnectStats() {
@@ -3402,6 +3475,43 @@ async function saveApiAbuseConfig() {
   const res = await API.post('/api/admin/api-abuse-config', payload);
   btnLoading(btn, false);
   if (res.success) Toast.success(res.message); else Toast.error(res.message || 'Gagal menyimpan');
+}
+
+
+async function loadInstantWdApiUsers() {
+  const res = await API.get('/api/admin/instant-wd-api-users');
+  const tb = document.getElementById('iwd-api-tbody');
+  if (!tb) return;
+  if (!res.success) { tb.innerHTML = '<tr><td colspan="3" class="text-muted">Gagal memuat</td></tr>'; return; }
+  if (!res.data.length) {
+    tb.innerHTML = '<tr><td colspan="3" class="text-muted text-sm">Belum ada user. API Withdraw Instan nonaktif untuk semua.</td></tr>';
+    return;
+  }
+  tb.innerHTML = res.data.map(r => `<tr>
+    <td><div style="font-weight:600">@${escapeHtml(r.username || '-')}</div></td>
+    <td class="text-sm">${escapeHtml(formatDate(r.added_at))}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="removeInstantWdApiUser('${escapeHtml(r.user_id)}','${escapeHtml(r.username || '')}')"><i class="fas fa-trash"></i> Cabut</button></td>
+  </tr>`).join('');
+}
+
+async function addInstantWdApiUser() {
+  const input = document.getElementById('iwd-api-username');
+  const username = input.value.trim();
+  if (!username) return Toast.error('Masukkan username atau email user');
+  const btn = document.getElementById('iwd-api-add-btn');
+  btn.disabled = true;
+  try {
+    const res = await API.post('/api/admin/instant-wd-api-users', { username });
+    if (res.success) { Toast.success(res.message); input.value = ''; loadInstantWdApiUsers(); }
+    else Toast.error(res.message || 'Gagal menambah user');
+  } finally { btn.disabled = false; }
+}
+
+async function removeInstantWdApiUser(userId, username) {
+  if (!await austinConfirm(`Cabut akses API Withdraw Instan dari @${username}?`)) return;
+  const res = await API.delete('/api/admin/instant-wd-api-users/' + encodeURIComponent(userId));
+  if (res.success) { Toast.success(res.message); loadInstantWdApiUsers(); }
+  else Toast.error(res.message || 'Gagal mencabut akses');
 }
 
 async function loadApiKeys(page = 1) {
@@ -4545,6 +4655,34 @@ async function saveWaLinks() {
     box.innerHTML = `<div class="alert alert-danger"><i class="fas fa-circle-exclamation"></i> Gagal menyimpan link</div>`;
   }
   btn.disabled = false;
+}
+
+
+function openResetOverview() {
+  document.getElementById('reset-overview-password').value = '';
+  Modal.open('reset-overview-modal');
+}
+
+async function confirmResetOverview() {
+  const pw = document.getElementById('reset-overview-password').value;
+  if (!pw) return Toast.error('Masukkan password admin untuk konfirmasi');
+  if (!await austinConfirm('Reset Overview sekarang?\n\nSemua angka kembali 0, hanya jumlah user yang dipertahankan.')) return;
+  const btn = document.getElementById('reset-overview-btn');
+  btn.disabled = true;
+  try {
+    const res = await API.post('/api/admin/overview/reset', { admin_password: pw });
+    if (res.success) {
+      Toast.success(res.message);
+      Modal.close('reset-overview-modal');
+    } else {
+      Toast.error(res.message || 'Gagal reset Overview');
+    }
+  } catch (e) {
+    Toast.error('Gagal reset Overview');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('reset-overview-password').value = '';
+  }
 }
 
 async function loadApkInfo() {

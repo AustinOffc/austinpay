@@ -718,3 +718,16 @@ html body .logo-icon i { color: #0d0f0e; }
   .ad-overlay { align-items: flex-end; padding: 12px; }
   .ad-card { max-width: none; padding: 24px 20px 18px; }
 }
+
+/* ── Withdraw Instan / Bebas Nominal: saldo provider habis ── */
+.card-body.is-soldout > :not(.instant-soldout) { display: none !important; }
+.instant-soldout { display: none; text-align: center; padding: 18px 4px 6px; }
+.card-body.is-soldout > .instant-soldout { display: block; }
+.instant-soldout .instant-soldout-icon {
+  width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; background: var(--c-yellow, #fde68a); color: #0d0f0e;
+}
+.instant-soldout h3 { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+.instant-soldout p { margin: 0 0 16px; font-size: 13px; line-height: 1.5; color: var(--text-muted, #64748b); }
+.instant-soldout .btn { text-decoration: none; justify-content: center; }
