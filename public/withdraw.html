@@ -428,6 +428,24 @@ document.querySelectorAll('#acc_pin, #del_pin, #instant_pin, #bebas_pin').forEac
   el.addEventListener('input', () => { el.value = el.value.replace(/\D/g, '').slice(0, 6); });
 });
 
+// Batas minimal withdraw manual (harus sama dengan backend):
+// GoPay 11.000 | bank selain SeaBank 10.000 | SeaBank & e-wallet lain 1
+function getMinWithdraw(method) {
+  const key = String(method || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!key) return 1;
+  if (key === 'gopay') return 11000;
+  if (key.includes('seabank')) return 1;
+  if (['dana', 'ovo', 'shopeepay', 'linkaja'].includes(key)) return 1;
+  return 10000;
+}
+
+function updateMinDisplay() {
+  const el = document.getElementById('min-display');
+  if (!el) return;
+  const min = getMinWithdraw(savedAccount && savedAccount.method);
+  el.textContent = min > 1 ? formatRupiah(min) : 'Tanpa minimal';
+}
+
 function updateFeeInfo() {
   const amount = parseInt(document.getElementById('amount').value) || 0;
   document.getElementById('total-hint').textContent =
@@ -471,6 +489,7 @@ async function loadAccount() {
     showAccountForm(false);
     hint.style.display = '';
   }
+  updateMinDisplay();
 }
 
 function startEditAccount() {
@@ -586,6 +605,11 @@ async function submitWithdraw() {
     alertBox.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Masukkan nominal withdraw yang valid</div>`;
     return;
   }
+  const minWd = getMinWithdraw(savedAccount.method);
+  if (amount < minWd) {
+    alertBox.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Minimal withdraw via ${savedAccount.method} adalah ${formatRupiah(minWd)}</div>`;
+    return;
+  }
   if (amount > userBalance) {
     alertBox.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Saldo tidak cukup. Saldo kamu: ${formatRupiah(userBalance)}</div>`;
     return;
@@ -628,6 +652,11 @@ async function withdrawAll() {
   }
   if (!userBalance || userBalance <= 0) {
     alertBox.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Saldo kamu kosong, tidak ada yang bisa di-withdraw.</div>';
+    return;
+  }
+  const minAll = getMinWithdraw(savedAccount.method);
+  if (userBalance < minAll) {
+    alertBox.innerHTML = `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Saldo kamu belum mencapai minimal withdraw via ${savedAccount.method} (${formatRupiah(minAll)}).</div>`;
     return;
   }
   if (!await austinConfirm(`Ajukan withdraw seluruh saldo sebesar ${formatRupiah(userBalance)}?`)) return;
