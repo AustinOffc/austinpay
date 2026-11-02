@@ -310,7 +310,7 @@ var NODES=[
   d:'Penyimpanan utama. Tulis deposit, transaksi, dan saldo secara atomik (claim → credit) agar tidak ada double credit.',file:'database/db.js',tech:'pg Pool'},
  {id:'resp',x:250,y:330,name:'Response',sub:'JSON · status code',ic:'reply',tone:'#3fd19a',
   d:'Menyusun respon JSON {success, data} beserta status code, lalu dikirim balik lewat jalur yang sama.',file:'controllers/*.controller.js',tech:'res.json()'},
- {id:'mutasi',x:80,y:580,name:'Mutasiku',sub:'webhook bank/QRIS',ic:'bank',tone:'#a2d3f5',
+ {id:'mutasi',x:80,y:580,name:'Mutasi',sub:'webhook bank/QRIS',ic:'bank',tone:'#a2d3f5',
   d:'Layanan mutasi eksternal. Saat ada uang masuk ke QRIS, ia menembak webhook ke server dengan signature.',file:'services/mutasiku.service.js',tech:'POST /api/webhook/mutasiku'},
  {id:'disp',x:1100,y:580,name:'Event Dispatcher',sub:'fire & forget',ic:'bus',tone:'#ffb3c7',
   d:'Setelah database sukses, event disebar ke semua kanal notifikasi tanpa menahan respon ke pengguna.',file:'services/userNotify.service.js',tech:'async · .catch(()=>{})'},
