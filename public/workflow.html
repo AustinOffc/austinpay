@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#c9f3e4">
-<title>AustinPay · Di Balik Layar</title>
-<meta name="description" content="Lihat langsung bagaimana AustinPay memproses transaksi: dari request masuk, validasi, database, sampai respon dikirim — real-time.">
+<title>AustinPay · Workflow</title>
+<meta name="description" content="Workflow request AustinPay secara live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -204,9 +204,8 @@ footer{padding:46px 0 60px;color:var(--muted);font-size:13px;font-weight:600;dis
 
 <main class="wrap">
   <section class="hero">
-    <span class="eyebrow"><i></i>Live · Di balik layar</span>
-    <h1>Lihat uangmu <mark>mengalir</mark>, milidetik demi milidetik.</h1>
-    <p class="sub">Setiap kali kamu deposit, tarik dana, atau menembak API, request melewati rantai pemeriksaan yang sama. Ini peta hidupnya — dari pintu masuk server, database, sampai respon sampai ke tanganmu.</p>
+    <span class="eyebrow"><i></i>Live</span>
+    <h1>Workflow <mark>Austin Pay</mark></h1>
     <div class="hero-cta">
       <a class="pill primary" href="#studio">Lihat workflow-nya ↓</a>
       <a class="pill" href="/api-docs">Baca API Docs</a>
@@ -246,25 +245,10 @@ footer{padding:46px 0 60px;color:var(--muted);font-size:13px;font-weight:600;dis
       <div class="inspect" id="inspect"></div>
     </div>
   </div>
-  <p class="note"><b>Mode Live</b> menampilkan request sungguhan dari server AustinPay (nama client ditampilkan di atas paket; IP, nominal, dan ID transaksi tidak pernah dikirim). Durasi total dan jumlah query database adalah hasil ukur asli; animasi sengaja diperlambat supaya terbaca. Tombol <b>Kirim request</b> mengirim ping sungguhan ke server dan kamu akan melihatnya melintas. <b>Mode Simulasi</b> dipakai otomatis bila server tidak terjangkau.</p>
 
-  <section class="sec">
-    <h2>Empat pintu sebelum uangmu disentuh.</h2>
-    <p class="lead">Tidak ada transaksi yang langsung menyentuh database. Semuanya antre melewati penjaga berikut.</p>
-    <div class="cards">
-      <div class="cardx" style="--tone:var(--purple)"><span class="n">01</span><h4>Edge &amp; Tunnel</h4><p>Koneksi dienkripsi TLS, lalu diteruskan lewat Cloudflare Tunnel ke server — IP asli server tidak pernah terbuka.</p><code>vercel.json · rewrites /api</code></div>
-      <div class="cardx" style="--tone:var(--orange)"><span class="n">02</span><h4>Rate Limit &amp; Auth</h4><p>Pembatas request per menit, lalu JWT / API Key + tanda tangan HMAC dan PIN untuk aksi sensitif.</p><code>middleware/rateLimiters.js</code></div>
-      <div class="cardx" style="--tone:var(--yellow)"><span class="n">03</span><h4>Database Atomik</h4><p>Saldo dan transaksi ditulis di PostgreSQL dengan klaim atomik, sehingga satu pembayaran tidak bisa dikreditkan dua kali.</p><code>database/db.js · claimDepositForCredit</code></div>
-      <div class="cardx" style="--tone:var(--blue)"><span class="n">04</span><h4>Notifikasi Instan</h4><p>Begitu sukses: Telegram, Socket.io ke dashboard, webhook ke server merchant, dan push ke ponsel.</p><code>services/webhook.service.js</code></div>
-    </div>
-  </section>
 
-  <div class="cta">
-    <h2>Siap ikut mengalir?</h2>
-    <a class="pill" href="/login">Daftar / Masuk →</a>
-  </div>
 
-  <footer><span>© AustinPay</span><span>Dibuat dengan kopi &amp; PostgreSQL.</span></footer>
+  <footer><span>© AustinPay</span></footer>
 </main>
 
 <script>
@@ -466,9 +450,6 @@ svg.appendChild(gEdges);svg.appendChild(gLbl);svg.appendChild(gPk);
 
 var zones=[];
 var zoneNote=function(t,x,y){var d=document.createElement('div');zones.push(d);d.className='zone';d.style.cssText='border:0;padding:0;left:'+x+'px;top:'+y+'px';d.textContent=t;stage.appendChild(d);};
-zoneNote('① Request masuk →',215,26);
-zoneNote('② ← Respon dikirim balik',330,292);
-zoneNote('③ Setelah sukses: notifikasi menyebar (async) →',560,672);
 stage.appendChild(svg);
 
 var edgeEl={},edgeMeta={},edgeLbl={},compact=false,edgeKey=function(a,b){return a+'>'+b;};
