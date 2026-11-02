@@ -81,15 +81,14 @@ h1 mark{background:var(--green);color:#0d0f0e;padding:0 .12em;border-radius:.18e
 .seg button[aria-pressed="true"]{background:#e8fff6;color:#0d0f0e}
 .btn svg{width:15px;height:15px}
 
-.viewport{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background-color:var(--canvas);
-  background-image:radial-gradient(rgba(255,255,255,.13) 1.1px,transparent 1.2px);background-size:22px 22px;cursor:grab;touch-action:pan-x pan-y}
+.viewport{position:relative;overflow:hidden;-webkit-overflow-scrolling:touch;background-color:var(--canvas);
+  background-image:radial-gradient(rgba(255,255,255,.13) 1.1px,transparent 1.2px);background-size:22px 22px;cursor:default;touch-action:pan-y}
 .viewport.grabbing{cursor:grabbing}
 .viewport::-webkit-scrollbar{height:8px}.viewport::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:8px}
 .stage-sizer{position:relative}
 .stage{position:absolute;left:0;top:0;transform-origin:0 0;width:1240px;height:700px}
 .stage svg.edges{position:absolute;inset:0;width:1240px;height:700px;overflow:visible;pointer-events:none}
-.hint{display:none;position:absolute;left:12px;bottom:10px;font-size:11.5px;font-weight:700;color:#8fb0a3;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:99px;pointer-events:none;z-index:5}
-@media(max-width:1260px){.hint{display:block}}
+.hint{display:none!important;position:absolute;left:12px;bottom:10px;font-size:11.5px;font-weight:700;color:#8fb0a3;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:99px;pointer-events:none;z-index:5}
 
 /* edges */
 .edge{fill:none;stroke:rgba(255,255,255,.2);stroke-width:2.2;transition:stroke .2s,stroke-width .2s}
@@ -124,6 +123,17 @@ h1 mark{background:var(--green);color:#0d0f0e;padding:0 .12em;border-radius:.18e
 .node .tip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:inherit;border-top-color:#e8fff6}
 .node .tip.bad::after{border-top-color:var(--danger)}
 .zone{position:absolute;border:1.5px dashed rgba(255,255,255,.14);border-radius:26px;font:700 10.5px var(--font-mono);letter-spacing:.14em;color:#587267;padding:10px 16px;text-transform:uppercase;pointer-events:none}
+
+/* mode ringkas (layar sempit): semua node muat satu layar tanpa geser */
+.stage.cp .node .box{width:64px;height:64px;border-radius:19px}
+.stage.cp .node .ico{width:32px;height:32px;border-radius:11px}
+.stage.cp .node .ico svg{width:19px;height:19px}
+.stage.cp .node .lbl{margin-top:6px;max-width:90px;padding:0 3px}
+.stage.cp .node .lbl b{font-size:11px;line-height:1.15}
+.stage.cp .node .lbl small{display:none}
+.stage.cp .node .cnt{top:-6px;right:-2px;min-width:19px;height:17px;font-size:9.5px}
+.pk-cl{fill:#0d0f0e;stroke-width:1.4}
+.pk-clt{font:700 10px var(--font-mono);fill:#e8fff6}
 
 /* bottom panels */
 .panels{display:grid;grid-template-columns:1.7fr 1fr;border-top:1px solid rgba(255,255,255,.1)}
@@ -226,7 +236,6 @@ footer{padding:46px 0 60px;color:var(--muted);font-size:13px;font-weight:600;dis
       <div class="stage-sizer" id="sizer">
         <div class="stage" id="stage"></div>
       </div>
-      <div class="hint">↔ geser untuk melihat seluruh alur</div>
     </div>
 
     <div class="panels">
@@ -237,7 +246,7 @@ footer{padding:46px 0 60px;color:var(--muted);font-size:13px;font-weight:600;dis
       <div class="inspect" id="inspect"></div>
     </div>
   </div>
-  <p class="note"><b>Mode Live</b> menampilkan request sungguhan dari server AustinPay secara anonim (tanpa IP, akun, nominal, atau ID transaksi). Durasi total dan jumlah query database adalah hasil ukur asli; animasi sengaja diperlambat supaya terbaca. Tombol <b>Kirim request</b> mengirim ping sungguhan ke server dan kamu akan melihatnya melintas. <b>Mode Simulasi</b> dipakai otomatis bila server tidak terjangkau.</p>
+  <p class="note"><b>Mode Live</b> menampilkan request sungguhan dari server AustinPay (nama client ditampilkan di atas paket; IP, nominal, dan ID transaksi tidak pernah dikirim). Durasi total dan jumlah query database adalah hasil ukur asli; animasi sengaja diperlambat supaya terbaca. Tombol <b>Kirim request</b> mengirim ping sungguhan ke server dan kamu akan melihatnya melintas. <b>Mode Simulasi</b> dipakai otomatis bila server tidak terjangkau.</p>
 
   <section class="sec">
     <h2>Empat pintu sebelum uangmu disentuh.</h2>
@@ -314,7 +323,12 @@ var NODES=[
  {id:'fcm',x:420,y:580,name:'Push / FCM',sub:'notif ponsel',ic:'bell',tone:'#ffb3c7',
   d:'Push notification ke aplikasi Android (FCM) dan Web Push agar pengguna tahu seketika.',file:'services/fcm.service.js',tech:'firebase-admin'}
 ];
-var N={};NODES.forEach(function(n){N[n.id]=n;});
+var N={};NODES.forEach(function(n){N[n.id]=n;n.dx=n.x;n.dy=n.y;});
+/* koordinat mode ringkas (W=368): kolom x=46/138/230/322, baris y=56/168/280/392/504 */
+var CP={mutasi:[230,56],client:[46,168],edge:[138,168],server:[230,168],ratelimit:[322,168],
+ resp:[46,280],ctrl:[138,280],guard:[230,280],auth:[322,280],
+ db:[46,392],disp:[138,392],tg:[230,392],sock:[322,392],hook:[322,504],fcm:[230,504]};
+var SIMC=['toko_budi','warungkopi','digi_store','rani_pay','panelku','kios_pulsa','ardi_h2h','mitra_jaya','nayla_shop','reseller01','bayu_sms','cell_88'];
 
 /* tipe edge: [from,to,tipe,label,gaya] */
 var EDGES=[
@@ -450,18 +464,25 @@ var defs=document.createElementNS(NS,'defs');svg.appendChild(defs);
 var gEdges=document.createElementNS(NS,'g'),gLbl=document.createElementNS(NS,'g'),gPk=document.createElementNS(NS,'g');
 svg.appendChild(gEdges);svg.appendChild(gLbl);svg.appendChild(gPk);
 
-var zoneNote=function(t,x,y){var d=document.createElement('div');d.className='zone';d.style.cssText='border:0;padding:0;left:'+x+'px;top:'+y+'px';d.textContent=t;stage.appendChild(d);};
+var zones=[];
+var zoneNote=function(t,x,y){var d=document.createElement('div');zones.push(d);d.className='zone';d.style.cssText='border:0;padding:0;left:'+x+'px;top:'+y+'px';d.textContent=t;stage.appendChild(d);};
 zoneNote('① Request masuk →',215,26);
 zoneNote('② ← Respon dikirim balik',330,292);
 zoneNote('③ Setelah sukses: notifikasi menyebar (async) →',560,672);
 stage.appendChild(svg);
 
-var edgeEl={},edgeKey=function(a,b){return a+'>'+b;};
+var edgeEl={},edgeMeta={},edgeLbl={},compact=false,edgeKey=function(a,b){return a+'>'+b;};
 function port(n,side){var x=n.x,y=n.y;
   if(side==='r')return[x+R,y];if(side==='l')return[x-R,y];if(side==='t')return[x,y-R];return[x,y+R];}
 function mkPath(cls,d){var p=document.createElementNS(NS,'path');p.setAttribute('class','edge '+(cls||''));p.setAttribute('d',d);gEdges.appendChild(p);return p;}
+function cpPath(A,B){var p,q,m;
+  if(Math.abs(A.y-B.y)<8){p=port(A,B.x>A.x?'r':'l');q=port(B,B.x>A.x?'l':'r');return 'M'+p+' L'+q;}
+  if(Math.abs(A.x-B.x)<8){p=port(A,B.y>A.y?'b':'t');q=port(B,B.y>A.y?'t':'b');return 'M'+p+' L'+q;}
+  p=port(A,B.y>A.y?'b':'t');q=port(B,B.y>A.y?'t':'b');m=(p[1]+q[1])/2;
+  return 'M'+p+' C'+p[0]+','+m+' '+q[0]+','+m+' '+q;}
 function edgePath(a,b,type){
   var A=N[a],B=N[b],p,q,c;
+  if(compact)return cpPath(A,B);
   if(type==='h'){p=port(A,'r');q=port(B,'l');return 'M'+p+' L'+q;}
   if(type==='v'){p=port(A,'b');q=port(B,'t');return 'M'+p+' L'+q;}
   if(type==='lane'){p=port(A,'l');q=port(B,'r');return 'M'+p+' L'+q;}
@@ -475,16 +496,30 @@ function edgePath(a,b,type){
   if(B.y>A.y){p=port(A,'b');q=dx<0?port(B,'r'):port(B,'l');return 'M'+p+' C'+p[0]+','+q[1]+' '+p[0]+','+q[1]+' '+q;}
   p=port(A,'t');q=dx<0?port(B,'r'):port(B,'l');return 'M'+p+' C'+p[0]+','+q[1]+' '+p[0]+','+q[1]+' '+q;
 }
+function placeLabel(k){var m=edgeMeta[k],t=edgeLbl[k];if(!t)return;
+  if(compact){t.setAttribute('display','none');return;}t.removeAttribute('display');
+  var el=edgeEl[k],L=el.getTotalLength(),pt=el.getPointAtLength(L*.5);
+  t.setAttribute('x',pt.x);t.setAttribute('y',pt.y-9);
+  if(m.type==='v'){t.setAttribute('x',pt.x+30);t.setAttribute('y',pt.y+4);}
+  if(m.type==='mut'){t.setAttribute('x',pt.x+28);t.setAttribute('y',pt.y-6);}}
 EDGES.forEach(function(e){
-  var el=mkPath(e[4]||'',edgePath(e[0],e[1],e[2]));edgeEl[edgeKey(e[0],e[1])]=el;
-  if(e[3]){var L=el.getTotalLength(),pt=el.getPointAtLength(L*.5),t=document.createElementNS(NS,'text');
-    t.setAttribute('class','elabel');t.setAttribute('x',pt.x);t.setAttribute('y',pt.y-9);t.textContent=e[3];
-    if(e[2]==='v'){t.setAttribute('x',pt.x+30);t.setAttribute('y',pt.y+4);}
-    if(e[2]==='mut'){t.setAttribute('x',pt.x+28);t.setAttribute('y',pt.y-6);}
-    gLbl.appendChild(t);}
+  var k=edgeKey(e[0],e[1]),el=mkPath(e[4]||'',edgePath(e[0],e[1],e[2]));edgeEl[k]=el;edgeMeta[k]={a:e[0],b:e[1],type:e[2]};
+  if(e[3]){var t=document.createElementNS(NS,'text');t.setAttribute('class','elabel');t.textContent=e[3];gLbl.appendChild(t);edgeLbl[k]=t;placeLabel(k);}
 });
 function getEdge(a,b){var k=edgeKey(a,b);if(edgeEl[k])return edgeEl[k];
-  var el=mkPath('extra',edgePath(a,b,'auto'));edgeEl[k]=el;return el;}
+  var el=mkPath('extra',edgePath(a,b,'auto'));edgeEl[k]=el;edgeMeta[k]={a:a,b:b,type:'auto'};return el;}
+/* pasang ulang semua posisi saat berpindah mode desktop <-> ringkas */
+function applyLayout(c){
+  compact=c;W=c?368:1240;H=c?580:700;R=c?32:42;
+  NODES.forEach(function(n){n.x=c?CP[n.id][0]:n.dx;n.y=c?CP[n.id][1]:n.dy;
+    n.el.style.left=(n.x-46)+'px';n.el.style.top=(n.y-R)+'px';});
+  stage.classList.toggle('cp',c);stage.style.width=W+'px';stage.style.height=H+'px';
+  svg.style.width=W+'px';svg.style.height=H+'px';svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  for(var k in edgeEl){var m=edgeMeta[k];edgeEl[k].setAttribute('d',edgePath(m.a,m.b,m.type));placeLabel(k);}
+  zones.forEach(function(z){z.style.display=c?'none':'';});
+  /* paket yang sedang jalan tidak valid lagi di tata letak baru */
+  if(typeof reqs!=='undefined'&&reqs){reqs.forEach(function(r){if(r.g&&r.g.parentNode)r.g.parentNode.removeChild(r.g);});reqs.length=0;}
+}
 
 /* node */
 NODES.forEach(function(n){
@@ -521,7 +556,9 @@ function refreshInspect(){var n=N[selId],c=inspectEl.querySelector('[data-k=c]')
    LAYOUT / SKALA
    ===================================================================== */
 function fit(){
-  var cw=viewport.clientWidth,s=Math.max(Math.min(1,cw/W),cw<700?.56:0);
+  var cw=viewport.clientWidth,wantC=false; /* selalu tata letak penuh, diskalakan agar muat satu layar */
+  if(wantC!==compact)applyLayout(wantC);
+  var s=Math.min(1,cw/W);
   stage.style.transform='scale('+s+')';sizer.style.width=(W*s)+'px';sizer.style.height=(H*s)+'px';
 }
 window.addEventListener('resize',fit);fit();
@@ -552,16 +589,24 @@ function mkPacket(r){
   var bg=document.createElementNS(NS,'rect');bg.setAttribute('class','pk-tag');bg.setAttribute('fill',r.color);bg.setAttribute('height','15');bg.setAttribute('y','-26');
   var tx=document.createElementNS(NS,'text');tx.setAttribute('class','pk-lbl');tx.setAttribute('y','-15');tx.textContent=(r.mine?'KAMU ':'')+'#'+r.id;
   var wd=tx.textContent.length*6.2+10;bg.setAttribute('width',wd);bg.setAttribute('x',-wd/2);tx.setAttribute('x',-wd/2+5);
-  g.appendChild(bg);g.appendChild(tx);g.appendChild(c);gPk.appendChild(g);return g;
+  g.appendChild(bg);g.appendChild(tx);
+  if(r.client){ /* nama client di atas request yang jalan */
+    var nm=String(r.client);if(nm.length>16)nm=nm.slice(0,15)+'…';
+    var cb=document.createElementNS(NS,'rect');cb.setAttribute('class','pk-cl');cb.setAttribute('stroke',r.color);cb.setAttribute('rx','7');cb.setAttribute('height','15');cb.setAttribute('y','-44');
+    var ct=document.createElementNS(NS,'text');ct.setAttribute('class','pk-clt');ct.setAttribute('y','-33');ct.textContent=nm;
+    var cw2=nm.length*6.2+12;cb.setAttribute('width',cw2);cb.setAttribute('x',-cw2/2);ct.setAttribute('x',-cw2/2+6);
+    g.appendChild(cb);g.appendChild(ct);}
+  g.appendChild(c);gPk.appendChild(g);return g;
 }
-function setColor(r,col){r.color=col;var c=r.g.querySelector('circle');c.setAttribute('fill',col);c.style.color=col;r.g.querySelector('rect').setAttribute('fill',col);}
+function setColor(r,col){r.color=col;var c=r.g.querySelector('circle');c.setAttribute('fill',col);c.style.color=col;r.g.querySelector('rect').setAttribute('fill',col);var cl=r.g.querySelector('.pk-cl');if(cl)cl.setAttribute('stroke',col);}
 
 function newReq(key,mine,pre){
   var sc=SC[key]||SC.other,b=pre||sc.build(),id=pre?pre.id:++seq,steps=b.steps;
   /* tentukan error (maks satu) */
   var errAt=pre?pre.errAt:-1;
   if(!pre){for(var i=0;i<steps.length;i++){var e=steps[i].err;if(e&&Math.random()<e.w){errAt=i;break;}}}
-  var r={id:id,key:key,color:sc.color,steps:steps,i:0,state:'dwell',t:0,dwell:0,mine:mine,head:b.head,sumMs:0,errAt:errAt,totalMs:pre?pre.total:null,live:!!pre,status:pre?pre.status:null,fail:null,pos:{x:0,y:0},path:null,len:0,d:0,async:false,main:true};
+  var client=mine?'kamu':(b.client||(key==='pay'?'Mutasiku':pick(SIMC)));
+  var r={client:client,id:id,key:key,color:sc.color,steps:steps,i:0,state:'dwell',t:0,dwell:0,mine:mine,head:b.head,sumMs:0,errAt:errAt,totalMs:pre?pre.total:null,live:!!pre,status:pre?pre.status:null,fail:null,pos:{x:0,y:0},path:null,len:0,d:0,async:false,main:true};
   r.g=mkPacket(r);
   enter(r,0);reqs.push(r);stat.tot++;
   return r;
@@ -707,7 +752,7 @@ function liveBuild(ev){
   }
   steps.push({n:'resp',m:st+' · '+ev.ms+'ms total',ms:0});
   steps.push({n:src,m:'respon diterima',ms:0,end:true});
-  return {id:ev.id,head:ev.method+' '+ev.path,steps:steps,errAt:errAt,total:ev.ms,status:st};
+  return {id:ev.id,head:ev.method+' '+ev.path,steps:steps,errAt:errAt,total:ev.ms,status:st,client:ev.sc==='pay'?'Mutasiku':(ev.client||'tamu')};
 }
 function onEvent(ev){
   if(!ev||ev.id<=lastId)return;lastId=ev.id;lastEvAt=performance.now();
