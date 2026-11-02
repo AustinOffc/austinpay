@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#c9f3e4">
+<title>AustinPay · Di Balik Layar</title>
+<meta name="description" content="Lihat langsung bagaimana AustinPay memproses transaksi: dari request masuk, validasi, database, sampai respon dikirim — real-time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0d0f0e; --bg:#c9f3e4; --card:#ffffff; --muted:#5b6d66; --line:rgba(13,15,14,.14);
+  --primary:#12a46a; --primary-d:#0c8a57; --green:#3fd19a; --yellow:#fbe76e; --orange:#ffac4b;
+  --purple:#a78bfa; --blue:#a2d3f5; --danger:#e5484d; --pink:#ffb3c7;
+  --canvas:#0d0f0e; --canvas-2:#141917;
+  --font-ui:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-num:'Bricolage Grotesque','Manrope',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--ink:#e8fff6;--bg:#0b1612;--card:#12211b;--muted:#8fb0a3;--line:rgba(214,255,238,.14);--primary:#3fd19a;--primary-d:#2db583;}
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-ui);background:var(--bg);color:var(--ink);line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:2px solid var(--ink)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-num);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand .mark{width:34px;height:34px;border-radius:10px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:18px;border:2px solid var(--ink);overflow:hidden}
+.brand .mark img{width:100%;height:100%;object-fit:cover;display:block}
+.nav-links{display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:2px solid var(--ink);background:var(--card);font-weight:700;font-size:14px;transition:transform .12s,box-shadow .12s;box-shadow:0 3px 0 var(--ink)}
+.pill:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--ink)}
+.pill:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.pill.primary{background:var(--primary);color:#fff}
+.pill.ghost{box-shadow:none;background:transparent}
+@media(max-width:560px){.nav-links .ghost{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:40px 0 14px;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:7px 14px;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);color:#0d0f0e}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:#e5484d;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+h1{font-family:var(--font-num);font-weight:800;font-size:clamp(36px,5.6vw,72px);line-height:1.06;letter-spacing:-.035em;margin:22px 0 18px;max-width:15ch}
+h1 mark{background:var(--green);color:#0d0f0e;padding:0 .12em;border-radius:.18em;box-decoration-break:clone;-webkit-box-decoration-break:clone;border:2px solid var(--ink)}
+.hero p.sub{max-width:60ch;font-size:clamp(15px,1.6vw,18px);color:var(--muted);font-weight:500}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-cta .pill{padding:13px 22px;font-size:15px}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:34px 0 16px}
+.stat{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:14px 16px;box-shadow:0 5px 0 var(--ink)}
+.stat small{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat b{display:block;font-family:var(--font-num);font-size:clamp(24px,3vw,34px);letter-spacing:-.03em;line-height:1.15;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat em{font-style:normal;font-size:13px;color:var(--muted);font-weight:700;margin-left:2px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.stats .stat:last-child{grid-column:span 2}}
+
+/* ---------- workflow card ---------- */
+.studio{background:var(--canvas);border:2px solid var(--ink);border-radius:30px;box-shadow:0 8px 0 var(--ink);overflow:hidden;color:#e8fff6}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .studio{border-color:rgba(214,255,238,.28);box-shadow:0 8px 0 rgba(0,0,0,.5)}}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);background:var(--canvas-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid rgba(255,255,255,.2);background:transparent;color:#cfe9de;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--c,#fff);display:block}
+.chip:hover{border-color:rgba(255,255,255,.55)}
+.chip[aria-pressed="true"]{background:#e8fff6;color:#0d0f0e;border-color:#e8fff6}
+.ctrls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.06);color:#e8fff6;padding:8px 14px;border-radius:12px;font-size:13px;font-weight:800;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:hover{background:rgba(255,255,255,.14)}
+.btn.go{background:var(--green);border-color:var(--green);color:#0d0f0e}
+.btn.go:hover{filter:brightness(1.08)}
+.seg{display:inline-flex;border:1.5px solid rgba(255,255,255,.25);border-radius:12px;overflow:hidden}
+.seg button{background:transparent;border:0;color:#cfe9de;padding:8px 11px;font-size:12.5px;font-weight:800}
+.seg button[aria-pressed="true"]{background:#e8fff6;color:#0d0f0e}
+.btn svg{width:15px;height:15px}
+
+.viewport{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background-color:var(--canvas);
+  background-image:radial-gradient(rgba(255,255,255,.13) 1.1px,transparent 1.2px);background-size:22px 22px;cursor:grab;touch-action:pan-x pan-y}
+.viewport.grabbing{cursor:grabbing}
+.viewport::-webkit-scrollbar{height:8px}.viewport::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:8px}
+.stage-sizer{position:relative}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0;width:1240px;height:700px}
+.stage svg.edges{position:absolute;inset:0;width:1240px;height:700px;overflow:visible;pointer-events:none}
+.hint{display:none;position:absolute;left:12px;bottom:10px;font-size:11.5px;font-weight:700;color:#8fb0a3;background:rgba(0,0,0,.55);padding:5px 10px;border-radius:99px;pointer-events:none;z-index:5}
+@media(max-width:1260px){.hint{display:block}}
+
+/* edges */
+.edge{fill:none;stroke:rgba(255,255,255,.2);stroke-width:2.2;transition:stroke .2s,stroke-width .2s}
+.edge.async{stroke-dasharray:6 6}
+.edge.extra{stroke:rgba(255,255,255,.1);stroke-dasharray:3 7}
+.edge.hot{stroke:var(--hot,#3fd19a);stroke-width:3;filter:drop-shadow(0 0 6px var(--hot,#3fd19a))}
+.elabel{font:700 10.5px var(--font-mono);fill:#7f9a8e;letter-spacing:.04em;text-anchor:middle}
+.pk-dot{filter:drop-shadow(0 0 7px currentColor)}
+.pk-lbl{font:700 10px var(--font-mono);fill:#0d0f0e}
+.pk-tag{rx:7}
+
+/* nodes */
+.node{position:absolute;width:92px;display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;-webkit-user-select:none}
+.node .box{position:relative;width:84px;height:84px;border-radius:24px;background:#f4fff9;border:2.5px solid #0d0f0e;display:grid;place-items:center;box-shadow:0 5px 0 rgba(255,255,255,.12);transition:transform .15s,box-shadow .15s}
+.node .ico{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:var(--tone);border:2px solid #0d0f0e}
+.node .ico svg{width:23px;height:23px;stroke:#0d0f0e;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.node:hover .box{transform:translateY(-2px)}
+.node.sel .box{outline:3px solid var(--yellow);outline-offset:3px}
+.node.active .box{animation:pulse .55s ease-out}
+.node.err .box{animation:shake .45s}
+.node.err .box::after{content:"";position:absolute;inset:-3px;border-radius:26px;border:3px solid var(--danger);box-shadow:0 0 22px var(--danger);opacity:0;animation:errflash .9s}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--tone),0 5px 0 rgba(255,255,255,.12)}100%{box-shadow:0 0 0 22px transparent,0 5px 0 rgba(255,255,255,.12)}}
+@keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes errflash{0%{opacity:1}100%{opacity:0}}
+.node .lbl{margin-top:9px;text-align:center;background:var(--canvas);padding:1px 5px;border-radius:6px;width:max-content;max-width:132px}
+.node .lbl b{display:block;font-size:12.5px;font-weight:800;line-height:1.2;color:#f1fff8}
+.node .lbl small{display:block;font:500 10px var(--font-mono);color:#7f9a8e;margin-top:1px;white-space:nowrap}
+.node .cnt{position:absolute;top:-7px;right:2px;min-width:22px;height:20px;padding:0 6px;border-radius:99px;background:#0d0f0e;color:#e8fff6;border:1.5px solid rgba(255,255,255,.35);font:700 10.5px var(--font-mono);display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.node .tip{position:absolute;bottom:100%;left:50%;transform:translate(-50%,2px);margin-bottom:6px;white-space:nowrap;font:700 10.5px var(--font-mono);background:#e8fff6;color:#0d0f0e;padding:4px 8px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;z-index:6}
+.node .tip.show{opacity:1;transform:translate(-50%,-3px)}
+.node .tip.bad{background:var(--danger);color:#fff}
+.node .tip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:inherit;border-top-color:#e8fff6}
+.node .tip.bad::after{border-top-color:var(--danger)}
+.zone{position:absolute;border:1.5px dashed rgba(255,255,255,.14);border-radius:26px;font:700 10.5px var(--font-mono);letter-spacing:.14em;color:#587267;padding:10px 16px;text-transform:uppercase;pointer-events:none}
+
+/* bottom panels */
+.panels{display:grid;grid-template-columns:1.7fr 1fr;border-top:1px solid rgba(255,255,255,.1)}
+@media(max-width:900px){.panels{grid-template-columns:1fr}}
+.logbox{border-right:1px solid rgba(255,255,255,.1);min-width:0}
+@media(max-width:900px){.logbox{border-right:0;border-bottom:1px solid rgba(255,255,255,.1)}}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fb0a3;background:var(--canvas-2)}
+.ph .live{display:inline-flex;gap:7px;align-items:center;color:#3fd19a}
+.ph .live i{width:7px;height:7px;border-radius:50%;background:#3fd19a;animation:blink 1.1s infinite}
+.log{height:262px;overflow:hidden;padding:8px 14px 12px;font:500 12px/1.75 var(--font-mono);display:flex;flex-direction:column;justify-content:flex-end;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
+.ln{display:flex;gap:10px;white-space:nowrap;animation:lnin .25s ease-out;overflow:hidden}
+@keyframes lnin{from{opacity:0;transform:translateY(6px)}}
+.ln .t{color:#587267;flex:none}.ln .id{color:var(--c,#3fd19a);flex:none;font-weight:600}
+.ln .nd{color:#e8fff6;flex:none;width:92px;font-weight:600}
+.ln .m{color:#a9c5b8;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ln .ms{margin-left:auto;color:#fbe76e;flex:none;padding-left:8px}
+.ln.bad .m,.ln.bad .ms{color:#ff8c90}
+.ln.fin .m{color:#3fd19a;font-weight:600}
+@media(max-width:560px){.ln .t{display:none}.ln .nd{width:78px}}
+.inspect{padding:16px;min-width:0}
+.inspect h3{font-family:var(--font-num);font-size:22px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+.inspect h3 i{width:12px;height:12px;border-radius:4px;background:var(--tone,#3fd19a);display:block;flex:none}
+.inspect p{color:#a9c5b8;font-size:13.5px;margin:8px 0 12px;font-weight:500}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px}
+.kv span{color:#7f9a8e;font-weight:700}.kv b{font:600 12px var(--font-mono);color:#e8fff6;word-break:break-all}
+.code{display:inline-block;margin-top:12px;font:600 11.5px var(--font-mono);color:#0d0f0e;background:var(--yellow);padding:4px 9px;border-radius:8px}
+.hint2{color:#7f9a8e;font-size:12.5px;margin-top:14px;font-weight:600}
+
+.ph .live i{background:currentColor}
+.ph .live.sim{color:#fbe76e}.ph .live.off{color:#ff8c90}
+.ph .live.wait i{animation:none;opacity:.5}
+/* ---------- explainers ---------- */
+section.sec{padding:70px 0 10px}
+h2{font-family:var(--font-num);font-weight:800;font-size:clamp(28px,4vw,48px);letter-spacing:-.03em;line-height:1.05;max-width:18ch}
+.sec .lead{color:var(--muted);max-width:56ch;margin-top:12px;font-weight:500;font-size:16px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:28px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.cards{grid-template-columns:1fr}}
+.cardx{background:var(--tone);color:#0d0f0e;border:2px solid #0d0f0e;border-radius:26px;padding:22px;box-shadow:0 6px 0 #0d0f0e;min-height:210px;display:flex;flex-direction:column}
+.cardx .n{font-family:var(--font-num);font-weight:800;font-size:13px;letter-spacing:.1em;background:#0d0f0e;color:#fff;border-radius:99px;padding:3px 11px;align-self:flex-start}
+.cardx h4{font-family:var(--font-num);font-size:23px;letter-spacing:-.02em;margin:16px 0 8px;line-height:1.1}
+.cardx p{font-size:14px;font-weight:600;opacity:.82}
+.cardx code{font:600 11.5px var(--font-mono);margin-top:auto;padding-top:14px;opacity:.75}
+.cta{margin:70px 0 0;background:var(--primary);color:#fff;border:2px solid var(--ink);border-radius:34px;padding:clamp(28px,5vw,56px);box-shadow:0 8px 0 var(--ink);display:flex;flex-wrap:wrap;gap:22px;align-items:center;justify-content:space-between}
+.cta h2{max-width:16ch;color:#fff}
+.cta .pill{background:#fff;color:#0d0f0e;border-color:#0d0f0e;padding:14px 26px;font-size:16px}
+footer{padding:46px 0 60px;color:var(--muted);font-size:13px;font-weight:600;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+.note{margin-top:14px;font-size:12.5px;color:var(--muted);font-weight:600}
+.note b{color:var(--ink)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(prefers-reduced-motion:reduce){.node.active .box,.node.err .box,.eyebrow i,.ph .live i{animation:none}}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="/" class="brand" aria-label="AustinPay">
+      <span class="mark" id="mark">A</span><span id="appName">AustinPay</span>
+    </a>
+    <nav class="nav-links">
+      <a class="pill ghost" href="/api-docs">API Docs</a>
+      <a class="pill primary" href="/login">Daftar / Masuk</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="eyebrow"><i></i>Live · Di balik layar</span>
+    <h1>Lihat uangmu <mark>mengalir</mark>, milidetik demi milidetik.</h1>
+    <p class="sub">Setiap kali kamu deposit, tarik dana, atau menembak API, request melewati rantai pemeriksaan yang sama. Ini peta hidupnya — dari pintu masuk server, database, sampai respon sampai ke tanganmu.</p>
+    <div class="hero-cta">
+      <a class="pill primary" href="#studio">Lihat workflow-nya ↓</a>
+      <a class="pill" href="/api-docs">Baca API Docs</a>
+    </div>
+  </section>
+
+  <div class="stats" aria-live="off">
+    <div class="stat"><small>Request / detik</small><b id="sRps">0.0</b></div>
+    <div class="stat"><small>Latensi rata-rata</small><b><span id="sLat">0</span><em>ms</em></b></div>
+    <div class="stat"><small>Sukses</small><b><span id="sOk">100</span><em>%</em></b></div>
+    <div class="stat"><small>Query database</small><b id="sDb">0</b></div>
+    <div class="stat"><small>Total request</small><b id="sTot">0</b></div>
+  </div>
+
+  <div class="studio" id="studio">
+    <div class="toolbar">
+      <div class="chips" id="chips" role="group" aria-label="Pilih skenario"></div>
+      <div class="ctrls">
+        <div class="seg" id="modeSeg" role="group" aria-label="Sumber data"><button data-m="live" aria-pressed="true">Live</button><button data-m="sim" aria-pressed="false">Simulasi</button></div>
+        <button class="btn go" id="fire"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>Kirim request</button>
+        <button class="btn" id="pause" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" id="pauseIco"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><span id="pauseTxt">Jeda</span></button>
+        <div class="seg" id="speed" role="group" aria-label="Kecepatan"><button data-s=".5">0.5×</button><button data-s="1" aria-pressed="true">1×</button><button data-s="2">2×</button></div>
+      </div>
+    </div>
+
+    <div class="viewport" id="viewport">
+      <div class="stage-sizer" id="sizer">
+        <div class="stage" id="stage"></div>
+      </div>
+      <div class="hint">↔ geser untuk melihat seluruh alur</div>
+    </div>
+
+    <div class="panels">
+      <div class="logbox">
+        <div class="ph"><span>Log server</span><span class="live wait" id="modeBadge"><i></i><b id="modeTxt" style="font-weight:800">menyambung…</b></span></div>
+        <div class="log" id="log" role="log" aria-live="off"></div>
+      </div>
+      <div class="inspect" id="inspect"></div>
+    </div>
+  </div>
+  <p class="note"><b>Mode Live</b> menampilkan request sungguhan dari server AustinPay secara anonim (tanpa IP, akun, nominal, atau ID transaksi). Durasi total dan jumlah query database adalah hasil ukur asli; animasi sengaja diperlambat supaya terbaca. Tombol <b>Kirim request</b> mengirim ping sungguhan ke server dan kamu akan melihatnya melintas. <b>Mode Simulasi</b> dipakai otomatis bila server tidak terjangkau.</p>
+
+  <section class="sec">
+    <h2>Empat pintu sebelum uangmu disentuh.</h2>
+    <p class="lead">Tidak ada transaksi yang langsung menyentuh database. Semuanya antre melewati penjaga berikut.</p>
+    <div class="cards">
+      <div class="cardx" style="--tone:var(--purple)"><span class="n">01</span><h4>Edge &amp; Tunnel</h4><p>Koneksi dienkripsi TLS, lalu diteruskan lewat Cloudflare Tunnel ke server — IP asli server tidak pernah terbuka.</p><code>vercel.json · rewrites /api</code></div>
+      <div class="cardx" style="--tone:var(--orange)"><span class="n">02</span><h4>Rate Limit &amp; Auth</h4><p>Pembatas request per menit, lalu JWT / API Key + tanda tangan HMAC dan PIN untuk aksi sensitif.</p><code>middleware/rateLimiters.js</code></div>
+      <div class="cardx" style="--tone:var(--yellow)"><span class="n">03</span><h4>Database Atomik</h4><p>Saldo dan transaksi ditulis di PostgreSQL dengan klaim atomik, sehingga satu pembayaran tidak bisa dikreditkan dua kali.</p><code>database/db.js · claimDepositForCredit</code></div>
+      <div class="cardx" style="--tone:var(--blue)"><span class="n">04</span><h4>Notifikasi Instan</h4><p>Begitu sukses: Telegram, Socket.io ke dashboard, webhook ke server merchant, dan push ke ponsel.</p><code>services/webhook.service.js</code></div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <h2>Siap ikut mengalir?</h2>
+    <a class="pill" href="/login">Daftar / Masuk →</a>
+  </div>
+
+  <footer><span>© AustinPay</span><span>Dibuat dengan kopi &amp; PostgreSQL.</span></footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+/* =====================================================================
+   DATA: node, edge, skenario  (urutan & nama file mengikuti backend asli)
+   ===================================================================== */
+var W=1240,H=700,R=42;
+var IC={
+ client:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+ bank:'<path d="M3 10 12 4l9 6"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',
+ server:'<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+ gauge:'<path d="M12 14l4-4"/><path d="M3.3 17a9 9 0 1 1 17.4 0"/>',
+ shield:'<path d="M12 3 4 6v6c0 4.5 3.3 7.8 8 9 4.7-1.2 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/>',
+ eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+ code:'<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>',
+ db:'<ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+ reply:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v4"/>',
+ bus:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6"/>',
+ send:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/>',
+ bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+ bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>'
+};
+var NODES=[
+ {id:'client',x:80,y:120,name:'Klien',sub:'App · Web · H2H',ic:'client',tone:'#a2d3f5',
+  d:'Sumber request: aplikasi Flutter, dashboard web, atau server merchant yang menembak API H2H.',file:'frontend/public/js/app.js',tech:'HTTPS · JSON'},
+ {id:'edge',x:250,y:120,name:'Edge Proxy',sub:'Vercel · Tunnel',ic:'globe',tone:'#a78bfa',
+  d:'Terminasi TLS, lalu /api/* di-rewrite ke backend lewat Cloudflare Tunnel. IP server asli tersembunyi.',file:'frontend/vercel.json',tech:'rewrites /api → backend'},
+ {id:'server',x:420,y:120,name:'Express Server',sub:'Node.js :3103',ic:'server',tone:'#a78bfa',
+  d:'Server utama di Pterodactyl. Mem-parse body, mencocokkan route, dan menjalankan rantai middleware.',file:'backend/src/server.js',tech:'express · helmet · cors'},
+ {id:'ratelimit',x:590,y:120,name:'Rate Limiter',sub:'per IP / user',ic:'gauge',tone:'#ffac4b',
+  d:'Membatasi jumlah request per menit (depositLimiter, authLimiter, webhookLimiter). Lewat batas → HTTP 429.',file:'middleware/rateLimiters.js',tech:'express-rate-limit'},
+ {id:'auth',x:760,y:120,name:'Auth Gate',sub:'JWT · API Key · HMAC',ic:'shield',tone:'#ffac4b',
+  d:'Memverifikasi identitas: cookie JWT, API Key dengan tanda tangan HMAC-SHA256 + timestamp, PIN untuk aksi sensitif.',file:'middleware/hybridAuth.middleware.js',tech:'jose · crypto.hmac'},
+ {id:'guard',x:930,y:120,name:'Abuse Guard',sub:'anti spam · dedup',ic:'eye',tone:'#ffac4b',
+  d:'Mendeteksi spam pembuatan transaksi dan duplikasi. Pelanggar otomatis di-suspend demi keamanan.',file:'services/apiAbuseGuard.service.js',tech:'guardTransaction()'},
+ {id:'ctrl',x:1100,y:120,name:'Controller',sub:'business logic',ic:'code',tone:'#3fd19a',
+  d:'Logika bisnis: hitung fee, kode unik, cek saldo, cocokkan pembayaran masuk dengan deposit pending.',file:'controllers/deposit.controller.js',tech:'create() · webhookMutasiku()'},
+ {id:'db',x:1100,y:330,name:'PostgreSQL',sub:'deposits · wallets',ic:'db',tone:'#fbe76e',
+  d:'Penyimpanan utama. Tulis deposit, transaksi, dan saldo secara atomik (claim → credit) agar tidak ada double credit.',file:'database/db.js',tech:'pg Pool'},
+ {id:'resp',x:250,y:330,name:'Response',sub:'JSON · status code',ic:'reply',tone:'#3fd19a',
+  d:'Menyusun respon JSON {success, data} beserta status code, lalu dikirim balik lewat jalur yang sama.',file:'controllers/*.controller.js',tech:'res.json()'},
+ {id:'mutasi',x:80,y:580,name:'Mutasiku',sub:'webhook bank/QRIS',ic:'bank',tone:'#a2d3f5',
+  d:'Layanan mutasi eksternal. Saat ada uang masuk ke QRIS, ia menembak webhook ke server dengan signature.',file:'services/mutasiku.service.js',tech:'POST /api/webhook/mutasiku'},
+ {id:'disp',x:1100,y:580,name:'Event Dispatcher',sub:'fire & forget',ic:'bus',tone:'#ffb3c7',
+  d:'Setelah database sukses, event disebar ke semua kanal notifikasi tanpa menahan respon ke pengguna.',file:'services/userNotify.service.js',tech:'async · .catch(()=>{})'},
+ {id:'tg',x:930,y:580,name:'Telegram Bot',sub:'notif admin & user',ic:'send',tone:'#a2d3f5',
+  d:'Mengirim notifikasi deposit/withdraw ke admin dan pemilik akun lewat Telegram.',file:'services/telegram.service.js',tech:'notifyDepositSuccess()'},
+ {id:'sock',x:760,y:580,name:'Socket.io',sub:'realtime dashboard',ic:'bolt',tone:'#fbe76e',
+  d:'Mendorong perubahan saldo & status langsung ke dashboard yang sedang terbuka, tanpa refresh.',file:'services/socket.service.js',tech:'io.to(room).emit()'},
+ {id:'hook',x:590,y:580,name:'Merchant Webhook',sub:'deposit.paid',ic:'link',tone:'#3fd19a',
+  d:'Memanggil URL webhook milik merchant dengan payload bertanda tangan, lengkap dengan retry.',file:'services/webhook.service.js',tech:'dispatch(deposit.paid)'},
+ {id:'fcm',x:420,y:580,name:'Push / FCM',sub:'notif ponsel',ic:'bell',tone:'#ffb3c7',
+  d:'Push notification ke aplikasi Android (FCM) dan Web Push agar pengguna tahu seketika.',file:'services/fcm.service.js',tech:'firebase-admin'}
+];
+var N={};NODES.forEach(function(n){N[n.id]=n;});
+
+/* tipe edge: [from,to,tipe,label,gaya] */
+var EDGES=[
+ ['client','edge','h','HTTPS'],['edge','server','h','TUNNEL'],['server','ratelimit','h',''],
+ ['ratelimit','auth','h',''],['auth','guard','h',''],['guard','ctrl','h',''],
+ ['ctrl','db','v','SQL'],['db','resp','lane','JSON'],['resp','client','up',''],
+ ['mutasi','server','mut','WEBHOOK'],
+ ['db','disp','v','EVENT','async'],
+ ['disp','tg','h','','async'],['tg','sock','h','','async'],['sock','hook','h','','async'],['hook','fcm','h','','async']
+];
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+function ri(a,b){return Math.round(rnd(a,b));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function money(){return pick([10000,25000,50000,75000,100000,150000,250000,500000]);}
+function idr(n){return 'Rp'+n.toLocaleString('id-ID');}
+
+/* skenario: build() menghasilkan langkah-langkah */
+var SC={
+ deposit:{name:'Deposit QRIS',color:'#3fd19a',src:'client',w:38,
+  build:function(){var a=money(),uc=ri(11,99),lim=15,n=ri(1,9);
+   return {head:'POST /api/deposit/create',steps:[
+    {n:'client',m:'POST /api/deposit/create {amount:'+a+'}',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route cocok · body JSON di-parse',ms:ri(1,3)},
+    {n:'ratelimit',m:'depositLimiter '+n+'/'+lim+' menit',ms:ri(1,3),err:{code:429,m:'depositLimiter terlampaui',w:.05}},
+    {n:'auth',m:'hybridAuth · JWT cookie valid',ms:ri(2,6),err:{code:401,m:'token tidak valid / kadaluarsa',w:.04}},
+    {n:'guard',m:'guardTransaction() lolos',ms:ri(1,4),err:{code:429,m:'terdeteksi spam transaksi',w:.025}},
+    {n:'ctrl',m:'fee 0,4% · kode unik +'+uc+' · '+idr(a+uc),ms:ri(3,9)},
+    {n:'db',m:'INSERT deposits, transactions',ms:ri(6,22),q:2,
+      fork:[{n:'disp',m:'emit deposit.pending',ms:1},{n:'tg',m:'notifyDepositPending()',ms:ri(40,120)}]},
+    {n:'resp',m:'200 OK · QRIS siap dibayar',ms:ri(1,2)},
+    {n:'client',m:'QR dirender di layar',ms:0,end:true}
+   ]};}},
+ pay:{name:'Pembayaran Masuk',color:'#fbe76e',src:'mutasi',w:26,
+  build:function(){var a=money(),uc=ri(11,99);
+   return {head:'POST /api/webhook/mutasiku',steps:[
+    {n:'mutasi',m:'uang masuk '+idr(a+uc)+' ke QRIS',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route /api/webhook/mutasiku',ms:ri(1,3)},
+    {n:'ratelimit',m:'mutasikuWebhookLimiter '+ri(2,60)+'/300',ms:ri(1,3)},
+    {n:'auth',m:'verifikasi signature webhook ✓',ms:ri(2,5),err:{code:401,m:'signature webhook tidak cocok',w:.03}},
+    {n:'guard',m:'dedup mutasi_stable_key · belum dipakai',ms:ri(2,7)},
+    {n:'ctrl',m:'cocokkan nominal + kode unik '+uc,ms:ri(3,10)},
+    {n:'db',m:'claimDepositForCredit · creditWallet · status=success',ms:ri(10,32),q:3,
+      fork:[{n:'disp',m:'emit deposit.paid',ms:1},{n:'tg',m:'notifyDepositSuccess()',ms:ri(40,110)},
+        {n:'hook',m:'POST ke webhook merchant · 200',ms:ri(60,220)},
+            {n:'fcm',m:'push “Deposit berhasil”',ms:ri(30,90),end:true}]},
+    {n:'resp',m:'200 OK · ack ke Mutasiku',ms:ri(1,2)},
+    {n:'mutasi',m:'ack diterima',ms:0,end:true}
+   ]};}},
+ wd:{name:'Penarikan Dana',color:'#ffac4b',src:'client',w:18,
+  build:function(){var a=money();
+   return {head:'POST /api/withdraw/create',steps:[
+    {n:'client',m:'POST /api/withdraw/create {amount:'+a+'}',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route cocok · body JSON di-parse',ms:ri(1,3)},
+    {n:'ratelimit',m:'withdrawLimiter '+ri(1,4)+'/5 menit',ms:ri(1,3),err:{code:429,m:'withdrawLimiter terlampaui',w:.05}},
+    {n:'auth',m:'hybridAuth · JWT + PIN valid',ms:ri(3,8),err:{code:401,m:'PIN salah / sesi terkunci',w:.05}},
+    {n:'guard',m:'guardTransaction() lolos',ms:ri(1,4)},
+    {n:'ctrl',m:'cek saldo ≥ '+idr(a)+' + fee',ms:ri(3,9),err:{code:422,m:'saldo tidak cukup',w:.05}},
+    {n:'db',m:'BEGIN · debit wallet · INSERT withdraws · COMMIT',ms:ri(14,40),q:3,
+      fork:[{n:'disp',m:'emit withdraw.created',ms:1},{n:'tg',m:'notif admin: withdraw baru',ms:ri(40,120)},{n:'fcm',m:'push “Penarikan diproses”',ms:ri(30,90),end:true}]},
+    {n:'resp',m:'200 OK · status pending',ms:ri(1,2)},
+    {n:'client',m:'riwayat penarikan ter-update',ms:0,end:true}
+   ]};}},
+ api:{name:'API H2H',color:'#a2d3f5',src:'client',w:22,
+  build:function(){
+   return {head:'GET /api/mutasi/latest',steps:[
+    {n:'client',m:'GET /api/mutasi/latest · X-Signature',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route api-public.routes.js',ms:ri(1,3)},
+    {n:'ratelimit',m:'apiLimiter '+ri(2,50)+'/120 menit',ms:ri(1,3),err:{code:429,m:'batas request API terlampaui',w:.04}},
+    {n:'auth',m:'API Key valid · HMAC-SHA256 cocok',ms:ri(2,6),err:{code:401,m:'signature HMAC tidak valid',w:.05}},
+    {n:'guard',m:'IP whitelist ✓ · requireApiKey',ms:ri(1,4),err:{code:403,m:'IP tidak ada di whitelist',w:.03}},
+    {n:'ctrl',m:'ambil mutasi terbaru milik akun',ms:ri(2,6)},
+    {n:'db',m:'SELECT mutasi WHERE user_id ORDER BY id DESC',ms:ri(4,16),q:1},
+    {n:'resp',m:'200 OK · '+ri(1,20)+' baris mutasi',ms:ri(1,2)},
+    {n:'client',m:'JSON diterima server merchant',ms:0,end:true}
+   ]};}},
+ login:{name:'Login',color:'#ffb3c7',src:'client',w:14,
+  build:function(){var nw=Math.random()<.3;
+   return {head:'POST /api/auth/login',steps:[
+    {n:'client',m:'POST /api/auth/login {email, password}',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route cocok · body JSON di-parse',ms:ri(1,3)},
+    {n:'ratelimit',m:'authLimiter '+ri(1,4)+'/5 menit',ms:ri(1,3),err:{code:429,m:'terlalu banyak percobaan login',w:.05}},
+    {n:'auth',m:'Turnstile ✓ · bcrypt.compare ✓',ms:ri(60,110),err:{code:401,m:'email atau password salah',w:.06}},
+    {n:'guard',m:nw?'perangkat baru terdeteksi':'trusted device dikenali',ms:ri(2,6)},
+    {n:'ctrl',m:'AuthController.login · terbitkan JWT',ms:ri(3,8)},
+    {n:'db',m:'SELECT users · INSERT login_logs, sessions',ms:ri(6,20),q:3,
+      fork:nw?[{n:'disp',m:'emit login.new_device',ms:1},{n:'fcm',m:'push “Login dari perangkat baru”',ms:ri(30,90),end:true}]:null},
+    {n:'resp',m:'200 OK · Set-Cookie: token',ms:ri(1,2)},
+    {n:'client',m:'masuk ke dashboard',ms:0,end:true}
+   ]};}},
+ ping:{name:'Ping',color:'#c4b5fd',src:'client',w:0,
+  build:function(){return {head:'GET /api/public/ping',steps:[
+    {n:'client',m:'GET /api/public/ping',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route cocok',ms:ri(1,3)},
+    {n:'ratelimit',m:'pingLimiter '+ri(1,8)+'/24 menit',ms:ri(1,3),err:{code:429,m:'terlalu banyak ping',w:.03}},
+    {n:'auth',m:'publik · tanpa autentikasi',ms:0},
+    {n:'guard',m:'tanpa pemeriksaan tambahan',ms:0},
+    {n:'ctrl',m:'handler ping',ms:ri(1,2)},
+    {n:'db',m:'SELECT 1',ms:ri(1,4),q:1},
+    {n:'resp',m:'200 OK · pong',ms:ri(1,2)},
+    {n:'client',m:'pong diterima',ms:0,end:true}
+   ]};}},
+ other:{name:'Dashboard',color:'#94a3b8',src:'client',w:10,
+  build:function(){return {head:'GET /api/user/dashboard',steps:[
+    {n:'client',m:'GET /api/user/dashboard',ms:0},
+    {n:'edge',m:'TLS ok · rewrite /api → backend',ms:ri(7,18)},
+    {n:'server',m:'route cocok',ms:ri(1,3)},
+    {n:'ratelimit',m:'limiter global '+ri(2,90)+'/200',ms:ri(1,3)},
+    {n:'auth',m:'requireAuth · JWT cookie',ms:ri(2,6),err:{code:401,m:'sesi berakhir',w:.03}},
+    {n:'guard',m:'tanpa pemeriksaan tambahan',ms:0},
+    {n:'ctrl',m:'UserController.getDashboard',ms:ri(3,8)},
+    {n:'db',m:'SELECT wallets, transactions, deposits',ms:ri(8,26),q:4},
+    {n:'resp',m:'200 OK · ringkasan dashboard',ms:ri(1,2)},
+    {n:'client',m:'dashboard dirender',ms:0,end:true}
+   ]};}}
+};
+var ORDER=['deposit','pay','wd','api','login','other','ping'];
+var BASE=(window.PIPELINE_BASE||'').replace(/\/$/,'');
+
+/* =====================================================================
+   BANGUN DOM
+   ===================================================================== */
+var NS='http://www.w3.org/2000/svg';
+var stage=document.getElementById('stage'),sizer=document.getElementById('sizer'),viewport=document.getElementById('viewport');
+var svg=document.createElementNS(NS,'svg');svg.setAttribute('class','edges');svg.setAttribute('viewBox','0 0 '+W+' '+H);
+var defs=document.createElementNS(NS,'defs');svg.appendChild(defs);
+var gEdges=document.createElementNS(NS,'g'),gLbl=document.createElementNS(NS,'g'),gPk=document.createElementNS(NS,'g');
+svg.appendChild(gEdges);svg.appendChild(gLbl);svg.appendChild(gPk);
+
+var zoneNote=function(t,x,y){var d=document.createElement('div');d.className='zone';d.style.cssText='border:0;padding:0;left:'+x+'px;top:'+y+'px';d.textContent=t;stage.appendChild(d);};
+zoneNote('① Request masuk →',215,26);
+zoneNote('② ← Respon dikirim balik',330,292);
+zoneNote('③ Setelah sukses: notifikasi menyebar (async) →',560,672);
+stage.appendChild(svg);
+
+var edgeEl={},edgeKey=function(a,b){return a+'>'+b;};
+function port(n,side){var x=n.x,y=n.y;
+  if(side==='r')return[x+R,y];if(side==='l')return[x-R,y];if(side==='t')return[x,y-R];return[x,y+R];}
+function mkPath(cls,d){var p=document.createElementNS(NS,'path');p.setAttribute('class','edge '+(cls||''));p.setAttribute('d',d);gEdges.appendChild(p);return p;}
+function edgePath(a,b,type){
+  var A=N[a],B=N[b],p,q,c;
+  if(type==='h'){p=port(A,'r');q=port(B,'l');return 'M'+p+' L'+q;}
+  if(type==='v'){p=port(A,'b');q=port(B,'t');return 'M'+p+' L'+q;}
+  if(type==='lane'){p=port(A,'l');q=port(B,'r');return 'M'+p+' L'+q;}
+  if(type==='up'){p=port(A,'t');q=port(B,'b');return 'M'+p+' C'+p[0]+','+(p[1]-60)+' '+q[0]+','+(q[1]+60)+' '+q;}
+  if(type==='mut'){p=port(A,'r');q=port(B,'b');return 'M'+p+' C'+(p[0]+190)+','+p[1]+' '+q[0]+','+(q[1]+260)+' '+q;}
+  /* otomatis */
+  var dy=Math.abs(A.y-B.y),dx=B.x-A.x;
+  if(dy<8){ /* satu baris: busur di atas node */
+    var up=A.y>300?-86:-86; p=port(A,'t');q=port(B,'t');
+    return 'M'+p+' C'+p[0]+','+(p[1]+up)+' '+q[0]+','+(q[1]+up)+' '+q;}
+  if(B.y>A.y){p=port(A,'b');q=dx<0?port(B,'r'):port(B,'l');return 'M'+p+' C'+p[0]+','+q[1]+' '+p[0]+','+q[1]+' '+q;}
+  p=port(A,'t');q=dx<0?port(B,'r'):port(B,'l');return 'M'+p+' C'+p[0]+','+q[1]+' '+p[0]+','+q[1]+' '+q;
+}
+EDGES.forEach(function(e){
+  var el=mkPath(e[4]||'',edgePath(e[0],e[1],e[2]));edgeEl[edgeKey(e[0],e[1])]=el;
+  if(e[3]){var L=el.getTotalLength(),pt=el.getPointAtLength(L*.5),t=document.createElementNS(NS,'text');
+    t.setAttribute('class','elabel');t.setAttribute('x',pt.x);t.setAttribute('y',pt.y-9);t.textContent=e[3];
+    if(e[2]==='v'){t.setAttribute('x',pt.x+30);t.setAttribute('y',pt.y+4);}
+    if(e[2]==='mut'){t.setAttribute('x',pt.x+28);t.setAttribute('y',pt.y-6);}
+    gLbl.appendChild(t);}
+});
+function getEdge(a,b){var k=edgeKey(a,b);if(edgeEl[k])return edgeEl[k];
+  var el=mkPath('extra',edgePath(a,b,'auto'));edgeEl[k]=el;return el;}
+
+/* node */
+NODES.forEach(function(n){
+  var d=document.createElement('div');d.className='node';d.id='n-'+n.id;d.style.left=(n.x-46)+'px';d.style.top=(n.y-R)+'px';d.style.setProperty('--tone',n.tone);
+  d.setAttribute('role','button');d.setAttribute('tabindex','0');d.setAttribute('aria-label',n.name);
+  d.innerHTML='<span class="tip"></span><div class="box"><div class="ico"><svg viewBox="0 0 24 24">'+IC[n.ic]+'</svg></div><span class="cnt">0</span></div><div class="lbl"><b>'+n.name+'</b><small>'+n.sub+'</small></div>';
+  stage.appendChild(d);
+  n.el=d;n.tip=d.querySelector('.tip');n.cnt=d.querySelector('.cnt');n.count=0;n.msSum=0;n.msN=0;n.last='—';
+  d.addEventListener('click',function(){select(n.id);});
+  d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();select(n.id);}});
+});
+
+/* chip skenario */
+var focus='all';
+var chipsEl=document.getElementById('chips');
+function chip(id,label,color){var b=document.createElement('button');b.className='chip';b.dataset.id=id;b.style.setProperty('--c',color);b.setAttribute('aria-pressed',id===focus);
+  b.innerHTML='<i></i>'+label;b.onclick=function(){focus=id;[].forEach.call(chipsEl.children,function(c){c.setAttribute('aria-pressed',c.dataset.id===id);});};chipsEl.appendChild(b);}
+chip('all','Semua','#e8fff6');ORDER.forEach(function(k){chip(k,SC[k].name,SC[k].color);});
+
+/* inspector */
+var inspectEl=document.getElementById('inspect'),selId='ctrl';
+function select(id){selId=id;NODES.forEach(function(n){n.el.classList.toggle('sel',n.id===id);});renderInspect();}
+function renderInspect(){var n=N[selId];
+  inspectEl.style.setProperty('--tone',n.tone);
+  inspectEl.innerHTML='<div class="ph" style="margin:-16px -16px 14px;"><span>Inspektur node</span><span>klik node mana saja</span></div>'+
+  '<h3><i></i>'+n.name+'</h3><p>'+n.d+'</p>'+
+  '<div class="kv"><span>Diproses</span><b data-k="c">'+n.count+' request</b><span>Rata-rata</span><b data-k="a">'+(n.msN?(n.msSum/n.msN).toFixed(1)+' ms':'—')+'</b><span>Terakhir</span><b data-k="l">'+n.last+'</b><span>Teknologi</span><b>'+n.tech+'</b></div>'+
+  '<span class="code">'+n.file+'</span>';
+}
+function refreshInspect(){var n=N[selId],c=inspectEl.querySelector('[data-k=c]');if(!c)return;
+  c.textContent=n.count+' request';inspectEl.querySelector('[data-k=a]').textContent=n.msN?(n.msSum/n.msN).toFixed(1)+' ms':'—';inspectEl.querySelector('[data-k=l]').textContent=n.last;}
+
+/* =====================================================================
+   LAYOUT / SKALA
+   ===================================================================== */
+function fit(){
+  var cw=viewport.clientWidth,s=Math.max(Math.min(1,cw/W),cw<700?.56:0);
+  stage.style.transform='scale('+s+')';sizer.style.width=(W*s)+'px';sizer.style.height=(H*s)+'px';
+}
+window.addEventListener('resize',fit);fit();
+/* drag-to-pan (desktop) */
+(function(){var down=false,sx=0,sl=0;
+ viewport.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse')return;down=true;sx=e.clientX;sl=viewport.scrollLeft;});
+ window.addEventListener('pointermove',function(e){if(!down)return;viewport.classList.add('grabbing');viewport.scrollLeft=sl-(e.clientX-sx);});
+ window.addEventListener('pointerup',function(){down=false;viewport.classList.remove('grabbing');});})();
+
+/* =====================================================================
+   ENGINE
+   ===================================================================== */
+var qIn=0,evQueue=[],running=true,speed=1,SPEEDPX=430,seq=1000,reqs=[],lastT=0,spawnIn=500;
+var stat={tot:0,ok:0,lat:[],db:0,done:[]};
+var logEl=document.getElementById('log');
+
+function clock(){var d=new Date();return d.toTimeString().slice(0,8)+'.'+String(d.getMilliseconds()).padStart(3,'0');}
+function log(r,node,msg,ms,cls){
+  var l=document.createElement('div');l.className='ln'+(cls?' '+cls:'');l.style.setProperty('--c',r.color);
+  l.innerHTML='<span class="t">'+clock()+'</span><span class="id">#'+r.id+'</span><span class="nd">'+node+'</span><span class="m"></span><span class="ms">'+(ms!=null?ms+'ms':'')+'</span>';
+  l.querySelector('.m').textContent=msg;logEl.appendChild(l);
+  while(logEl.children.length>14)logEl.removeChild(logEl.firstChild);
+}
+
+function mkPacket(r){
+  var g=document.createElementNS(NS,'g');
+  var c=document.createElementNS(NS,'circle');c.setAttribute('r',r.mine?9:6.5);c.setAttribute('fill',r.color);c.setAttribute('class','pk-dot');c.style.color=r.color;
+  var bg=document.createElementNS(NS,'rect');bg.setAttribute('class','pk-tag');bg.setAttribute('fill',r.color);bg.setAttribute('height','15');bg.setAttribute('y','-26');
+  var tx=document.createElementNS(NS,'text');tx.setAttribute('class','pk-lbl');tx.setAttribute('y','-15');tx.textContent=(r.mine?'KAMU ':'')+'#'+r.id;
+  var wd=tx.textContent.length*6.2+10;bg.setAttribute('width',wd);bg.setAttribute('x',-wd/2);tx.setAttribute('x',-wd/2+5);
+  g.appendChild(bg);g.appendChild(tx);g.appendChild(c);gPk.appendChild(g);return g;
+}
+function setColor(r,col){r.color=col;var c=r.g.querySelector('circle');c.setAttribute('fill',col);c.style.color=col;r.g.querySelector('rect').setAttribute('fill',col);}
+
+function newReq(key,mine,pre){
+  var sc=SC[key]||SC.other,b=pre||sc.build(),id=pre?pre.id:++seq,steps=b.steps;
+  /* tentukan error (maks satu) */
+  var errAt=pre?pre.errAt:-1;
+  if(!pre){for(var i=0;i<steps.length;i++){var e=steps[i].err;if(e&&Math.random()<e.w){errAt=i;break;}}}
+  var r={id:id,key:key,color:sc.color,steps:steps,i:0,state:'dwell',t:0,dwell:0,mine:mine,head:b.head,sumMs:0,errAt:errAt,totalMs:pre?pre.total:null,live:!!pre,status:pre?pre.status:null,fail:null,pos:{x:0,y:0},path:null,len:0,d:0,async:false,main:true};
+  r.g=mkPacket(r);
+  enter(r,0);reqs.push(r);stat.tot++;
+  return r;
+}
+function place(r,x,y){r.g.setAttribute('transform','translate('+x+','+y+')');}
+
+function enter(r,idx){ /* paket tiba di node steps[idx] */
+  r.i=idx;var s=r.steps[idx],n=N[s.n];
+  var ms=s.ms;r.sumMs+=ms;n.count++;n.cnt.textContent=n.count;if(ms){n.msSum+=ms;n.msN++;}
+  n.last=s.m.length>34?s.m.slice(0,33)+'…':s.m;
+  var failing=(r.errAt===idx);
+  n.el.classList.remove('active','err');void n.el.offsetWidth;
+  if(failing){n.el.classList.add('err');}else{n.el.classList.add('active');}
+  var tip=n.tip;tip.className='tip show'+(failing?' bad':'');tip.textContent=failing?(s.err.code+' · '+s.err.m):(ms?'+'+ms+'ms':'✓');
+  clearTimeout(n._tt);n._tt=setTimeout(function(){tip.classList.remove('show');},900/speed+400);
+  if(s.q&&!r.live)stat.db+=s.q;
+  if(failing){r.fail=s.err;setColor(r,'#ff6b70');log(r,n.name,s.err.code+' '+s.err.m,ms,'bad');}
+  else if(r.fail&&s.n==='resp'){log(r,n.name,r.fail.code+' · '+r.fail.m,ms||null,'bad');}
+  else if(r.fail&&s.end){log(r,n.name,'menerima error '+r.fail.code,null,'bad');}
+  else{log(r,n.name,s.m,ms||null,s.end&&r.main?'fin':'');}
+  if(selId===n.id)refreshInspect();
+  r.pos={x:n.x,y:n.y};place(r,n.x,n.y);
+  if(s.fork&&!failing){spawnFork(r,s);}
+  /* dwell */
+  r.state='dwell';r.t=0;r.dwell=(failing?420:170+Math.min(ms,60)*6);
+  r.pending=null;
+}
+function spawnFork(r,s){
+  var f=s.fork;if(!f)return;
+  var c={id:r.id,key:r.key,color:r.color,steps:[{n:s.n,m:'',ms:0,skip:true}].concat(f),i:0,state:'dwell',t:0,dwell:60,mine:false,head:r.head,sumMs:0,errAt:-1,pos:{x:N[s.n].x,y:N[s.n].y},async:true,main:false,fl:true};
+  c.g=mkPacket(c);c.g.querySelector('text').textContent='#'+c.id;
+  c.g.setAttribute('opacity','.95');c.g.querySelector('circle').setAttribute('r',5);
+  place(c,c.pos.x,c.pos.y);reqs.push(c);
+}
+function nextTarget(r){ /* node tujuan berikutnya, memperhitungkan error → resp */
+  if(r.fail){ if(r.i<r.steps.length-1 && r.steps[r.i].n==='resp')return r.steps.length-1;
+     /* lompat ke resp lalu sumber */
+     var ri_=-1;for(var k=r.i+1;k<r.steps.length;k++){if(r.steps[k].n==='resp'){ri_=k;break;}}
+     return ri_;}
+  return r.i+1;
+}
+function depart(r){
+  var ni=nextTarget(r);
+  if(ni<0||ni>=r.steps.length){finish(r);return;}
+  var a=r.steps[r.i].n,b=r.steps[ni].n;
+  r.path=getEdge(a,b);r.len=r.path.getTotalLength();r.d=0;r.next=ni;r.state='move';
+  r.edgeKey=edgeKey(a,b);r.async=r.async||(r.path.classList.contains('async'));
+  if(r.fl)r.async=true;
+}
+function finish(r){
+  r.state='done';
+  if(r.main){var ok=!r.fail;var tot=(r.totalMs!=null)?r.totalMs:r.sumMs+ri(6,12);
+    if(!r.live){stat.done.push({t:performance.now(),ok:ok,ms:tot});if(ok){stat.ok++;}stat.lat.push(tot);if(stat.lat.length>60)stat.lat.shift();}
+    log(r,'selesai',(r.fail?'✗ '+r.fail.code:'✓ '+(r.status||'2xx'))+' · '+r.head,tot,r.fail?'bad':'fin');}
+  r.g.style.transition='opacity .4s';r.g.setAttribute('opacity','0');
+  setTimeout(function(){if(r.g.parentNode)r.g.parentNode.removeChild(r.g);},450);
+}
+
+function tick(ts){
+  requestAnimationFrame(tick);
+  if(!lastT)lastT=ts;var dt=Math.min(ts-lastT,50);lastT=ts;
+  if(!running)return;
+  dt*=speed;
+  /* spawn otomatis */
+  spawnIn-=dt;
+  qIn-=dt;
+  if(qIn<=0&&evQueue.length){spawnLive(evQueue.shift());qIn=150;}
+  if(spawnIn<=0&&effMode()==='sim'&&reqs.filter(function(r){return r.main&&r.state!=='done';}).length<16){
+    var key=focus==='all'?weighted():focus;newReq(key,false);
+    spawnIn=rnd(650,1500)*(focus==='all'?1:1.1);
+  }
+  var hot={};
+  for(var i=reqs.length-1;i>=0;i--){var r=reqs[i];
+    if(r.state==='done'){if(!r.g.parentNode)reqs.splice(i,1);continue;}
+    if(r.state==='dwell'){r.t+=dt;if(r.t>=r.dwell)depart(r);}
+    else if(r.state==='move'){
+      r.d+=SPEEDPX*dt/1000;
+      var L=r.len,dd=Math.min(r.d,L),pt=r.path.getPointAtLength(dd);place(r,pt.x,pt.y);
+      hot[r.edgeKey]=r.color;
+      if(r.d>=L){ if(r.fl&&r.i===0&&r.next===1){} enter(r,r.next);}
+    }
+  }
+  for(var k in edgeEl){var el=edgeEl[k];if(hot[k]){el.classList.add('hot');el.style.setProperty('--hot',hot[k]);}else el.classList.remove('hot');}
+  stats();
+}
+function weighted(){var t=0;ORDER.forEach(function(k){t+=SC[k].w;});var x=Math.random()*t;
+  for(var i=0;i<ORDER.length;i++){x-=SC[ORDER[i]].w;if(x<=0)return ORDER[i];}return 'deposit';}
+
+var $=function(id){return document.getElementById(id);},_t=0;
+function stats(){
+  var now=performance.now();if(now-_t<250)return;_t=now;
+  if(effMode()==='live'){liveStats(now);return;}
+  stat.done=stat.done.filter(function(d){return now-d.t<10000;});
+  var span=Math.min(10000,now-t0)/1000;
+  $('sRps').textContent=(stat.done.length/Math.max(span,1)).toFixed(1);
+  var avg=stat.lat.length?stat.lat.reduce(function(a,b){return a+b;},0)/stat.lat.length:0;
+  $('sLat').textContent=Math.round(avg);
+  var fin=stat.done.length;var ok=stat.done.filter(function(d){return d.ok;}).length;
+  $('sOk').textContent=fin?Math.round(ok/fin*100):100;
+  $('sDb').textContent=stat.db.toLocaleString('id-ID');$('sTot').textContent=stat.tot.toLocaleString('id-ID');
+}
+var t0=performance.now();
+
+/* =====================================================================
+   LIVE: sambungan ke server (SSE → fallback polling → fallback simulasi)
+   ===================================================================== */
+var want='live',conn='connecting',via='sse',lastId=0,synced=false,myRefs={},lastEvAt=performance.now();
+var liveEv=[],liveDb=0,liveTotal=0,liveT0=performance.now();
+function effMode(){if(want==='sim')return 'sim';if(conn==='ok')return 'live';if(conn==='fail')return 'sim';return 'connecting';}
+function sys(msg,cls){log({id:'··',color:'#8fb0a3'},'sistem',msg,null,cls);}
+function badge(){
+  var m=effMode(),b=$('modeBadge'),t=$('modeTxt');
+  var txt={live:'LIVE · server'+(via==='poll'?' (polling)':''),sim:want==='sim'?'SIMULASI':'SIMULASI · server tidak terjangkau',connecting:'menyambung…'}[m];
+  if(conn==='drop'&&want==='live')txt='terputus · mencoba lagi…';
+  t.textContent=txt;b.className='live'+(m==='sim'?' sim':(m==='connecting'||conn==='drop')?' wait':'');
+  [].forEach.call($('modeSeg').children,function(x){x.setAttribute('aria-pressed',x.dataset.m===want);});
+}
+function setConn(c,v){var was=effMode();conn=c;if(v)via=v;badge();
+  if(effMode()!==was){sys(effMode()==='live'?'terhubung ke server · request nyata akan muncul di sini':effMode()==='sim'?'server tidak terjangkau · beralih ke simulasi':'menyambung…');}}
+var TXT={429:'terlalu banyak request',401:'tidak terautentikasi',403:'akses ditolak',404:'tidak ditemukan',422:'data ditolak',409:'konflik / duplikat',400:'permintaan tidak valid'};
+function liveBuild(ev){
+  var src=ev.sc==='pay'?'mutasi':'client',st=ev.status,failing=st>=400;
+  var db=ev.db||{n:0,ms:0},rest=Math.max(0,Math.round((ev.ms-db.ms)*10)/10);
+  var authMsg=ev.auth==='apikey'?'API Key terdeteksi':ev.auth==='jwt'?'cookie JWT terdeteksi':'publik · tanpa autentikasi';
+  var steps=[
+   {n:src,m:ev.method+' '+ev.path,ms:0},
+   {n:'edge',m:'request tiba lewat edge → backend',ms:0},
+   {n:'server',m:'route dicocokkan',ms:0},
+   {n:'ratelimit',m:'batas request dicek',ms:0},
+   {n:'auth',m:authMsg,ms:0},
+   {n:'guard',m:'pemeriksaan keamanan',ms:0},
+   {n:'ctrl',m:'handler + middleware '+rest+'ms',ms:rest}
+  ];
+  var errAt=-1;
+  if(failing){errAt=st===429?3:st===401?4:st===403?5:6;steps[errAt].err={code:st,m:TXT[st]||(st>=500?'error server':'ditolak')};}
+  else{
+    var anchor;
+    if(db.n>0){steps.push({n:'db',m:db.n+' query · '+db.ms+'ms',ms:db.ms,q:db.n});anchor=steps[steps.length-1];}
+    else anchor=steps[6];
+    var order=['tg','sock','hook','fcm'],M={tg:'Telegram dipanggil',sock:'Socket.io emit',hook:'webhook merchant dikirim',fcm:'push notification dikirim'};
+    var fx=order.filter(function(k){return (ev.fx||[]).indexOf(k)>-1;});
+    if(fx.length){anchor.fork=[{n:'disp',m:'event disebarkan',ms:0}].concat(fx.map(function(k,i){return {n:k,m:M[k],ms:0,end:i===fx.length-1};}));}
+  }
+  steps.push({n:'resp',m:st+' · '+ev.ms+'ms total',ms:0});
+  steps.push({n:src,m:'respon diterima',ms:0,end:true});
+  return {id:ev.id,head:ev.method+' '+ev.path,steps:steps,errAt:errAt,total:ev.ms,status:st};
+}
+function onEvent(ev){
+  if(!ev||ev.id<=lastId)return;lastId=ev.id;lastEvAt=performance.now();
+  liveTotal=Math.max(liveTotal,ev.id);liveDb+=(ev.db&&ev.db.n)||0;
+  liveEv.push({t:lastEvAt,ok:ev.status<400,ms:ev.ms});if(liveEv.length>200)liveEv.shift();
+  if(want!=='live'||!running)return;
+  evQueue.push(ev);if(evQueue.length>40)evQueue.shift();
+}
+function spawnLive(ev){
+  var mine=!!(ev.ref&&myRefs[ev.ref]);
+  if(!mine&&focus!=='all'&&ev.sc!==focus)return;
+  if(reqs.filter(function(r){return r.main&&r.state!=='done';}).length>=18&&!mine)return;
+  newReq(SC[ev.sc]?ev.sc:'other',mine,liveBuild(ev));
+}
+function liveStats(now){
+  var w=liveEv.filter(function(e){return now-e.t<10000;}),last=liveEv.slice(-60);
+  var span=Math.min(10,(now-liveT0)/1000);
+  $('sRps').textContent=(w.length/Math.max(span,1)).toFixed(1);
+  var avg=last.length?last.reduce(function(a,e){return a+e.ms;},0)/last.length:0;
+  $('sLat').textContent=avg<10?avg.toFixed(1):Math.round(avg);
+  $('sOk').textContent=last.length?Math.round(last.filter(function(e){return e.ok;}).length/last.length*100):100;
+  $('sDb').textContent=liveDb.toLocaleString('id-ID');$('sTot').textContent=liveTotal.toLocaleString('id-ID');
+}
+function doPing(mine){
+  var ref=null;if(mine){ref=Math.random().toString(36).slice(2,10);myRefs[ref]=1;}
+  fetch(BASE+'/api/public/ping'+(ref?'?t='+ref:''),{cache:'no-store'}).catch(function(){});
+}
+var es=null,pollT=null,pollFails=0,pollOk=false,gotHello=false;
+function startLive(){
+  badge();
+  if(!window.EventSource){startPoll();return;}
+  var guard=setTimeout(function(){if(!gotHello){closeEs();startPoll();}},6000);
+  try{es=new EventSource(BASE+'/api/public/pipeline/stream');}catch(e){clearTimeout(guard);startPoll();return;}
+  es.addEventListener('hello',function(e){clearTimeout(guard);gotHello=true;try{lastId=Math.max(lastId,JSON.parse(e.data).last||0);}catch(_){}setConn('ok','sse');});
+  es.onmessage=function(e){try{onEvent(JSON.parse(e.data));}catch(_){}};
+  es.onerror=function(){clearTimeout(guard);
+    if(!gotHello){closeEs();startPoll();}else{setConn('drop');}};
+}
+function closeEs(){if(es){try{es.close();}catch(_){}es=null;}}
+function startPoll(){
+  if(pollT)return;via='poll';
+  var go=function(){
+    fetch(BASE+'/api/public/pipeline/recent'+(synced?'?after='+lastId:''),{cache:'no-store'})
+     .then(function(r){if(!r.ok)throw 0;return r.json();})
+     .then(function(d){pollFails=0;pollOk=true;
+       if(!synced){synced=true;lastId=Math.max(lastId,d.last||0);}
+       else(d.events||[]).forEach(onEvent);
+       if(conn!=='ok')setConn('ok','poll');})
+     .catch(function(){pollFails++;
+       if(!pollOk&&pollFails>=2){setConn('fail');}
+       else if(pollOk&&pollFails>=3&&conn==='ok'){setConn('drop');}});
+  };
+  go();pollT=setInterval(go,1500);
+}
+/* denyut: bila server sepi, kirim ping sungguhan supaya halaman tetap hidup */
+setInterval(function(){
+  if(effMode()==='live'&&running&&!document.hidden&&performance.now()-lastEvAt>10000){doPing(false);lastEvAt=performance.now()-4000;}
+},3000);
+[].forEach.call($('modeSeg').children,function(b){b.onclick=function(){
+  want=b.dataset.m;badge();spawnIn=300;
+  sys(want==='sim'?'mode simulasi aktif':'kembali ke data live');
+};});
+
+/* kontrol */
+$('fire').onclick=function(){
+  if(effMode()==='live'){doPing(true);}
+  else{var key=focus==='all'?pick(ORDER):focus;newReq(key,true);}
+  if(!running)toggle();};
+function toggle(){running=!running;$('pause').setAttribute('aria-pressed',!running);$('pauseTxt').textContent=running?'Jeda':'Lanjut';
+  $('pauseIco').innerHTML=running?'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>':'<path d="M7 4v16l13-8z"/>';}
+$('pause').onclick=toggle;
+[].forEach.call($('speed').children,function(b){b.onclick=function(){speed=parseFloat(b.dataset.s);[].forEach.call($('speed').children,function(x){x.setAttribute('aria-pressed',x===b);});};});
+
+/* branding dari backend (sama seperti index.html) */
+(function(){var base=(window.API_BASE||'');
+  fetch(base+'/api/public/branding').then(function(r){return r.json();}).then(function(d){
+    if(d&&d.success){if(d.app_name){$('appName').textContent=d.app_name;}
+      if(d.app_logo){var i=new Image();i.alt='';i.onload=function(){var m=$('mark');m.textContent='';m.appendChild(i);};i.src=d.app_logo;}}
+  }).catch(function(){});})();
+
+select('ctrl');
+requestAnimationFrame(tick);
+startLive();
+})();
+</script>
+</body>
+</html>

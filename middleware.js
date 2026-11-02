@@ -34,7 +34,7 @@ const PAGE_ROUTES = new Set([
   '/', '/login', '/register', '/verify-email', '/forgot-password', '/verify-pin', '/set-pin',
   '/dashboard', '/saweria', '/cekmutasi', '/riwayat-mutasi', '/deposit', '/withdraw', '/history',
   '/overview', '/leaderboard', '/profile', '/webhook', '/api-settings', '/notification',
-  '/download-apk', '/feedback', '/penghargaan', '/api-docs',
+  '/download-apk', '/feedback', '/penghargaan', '/api-docs', '/workflow',
   '/austinganteng', '/austinganteng/users', '/austinganteng/deposits', '/austinganteng/withdraws',
   '/austinganteng/transactions', '/austinganteng/settings', '/austinganteng/logs',
   '/austinganteng/api-keys', '/austinganteng/ip-whitelist', '/austinganteng/notifications',

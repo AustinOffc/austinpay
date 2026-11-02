@@ -98,6 +98,10 @@
       "destination": "/api-docs.html"
     },
     {
+      "source": "/workflow",
+      "destination": "/workflow.html"
+    },
+    {
       "source": "/austinganteng",
       "destination": "/admin.html"
     },
